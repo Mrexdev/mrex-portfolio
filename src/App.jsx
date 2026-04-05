@@ -240,7 +240,7 @@ export default function App() {
             {/* HERO */}
             <div className="hw" style={{ display: "flex", alignItems: "center", padding: "56px 80px 48px", gap: "40px", position: "relative", overflow: "hidden", minHeight: "520px" }}>
               <div style={{ position: "absolute", inset: 0, zIndex: 0 }}>
-                <img src="https://i.pinimg.com/736x/a4/a9/a6/a4a9a6a8e3bae75af733926c7cfec1b2.jpg" alt="" style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center top", opacity: .18, filter: "saturate(.5)", ...paralaxStyle }} />
+                <img src="https://i.pinimg.com/1200x/08/af/22/08af22c8819ac35e7c0319b5f33b97f7.jpg" alt="" style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center top", opacity: .18, filter: "saturate(.5)", ...paralaxStyle }} />
                 <div style={{ position: "absolute", inset: 0, background: "linear-gradient(105deg,rgba(5,5,14,.98) 0%,rgba(5,5,14,.8) 55%,rgba(5,5,14,.1) 100%)" }} />
                 <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom,transparent 40%,rgba(5,5,14,1) 100%)" }} />
               </div>
