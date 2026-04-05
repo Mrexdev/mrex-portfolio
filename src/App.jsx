@@ -1,42 +1,81 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 
+/* ─────────────── DATA ─────────────── */
 const SKILLS = [
-  { name: "JavaScript", level: 90, color: "#F7DF1E", icon: "JS", desc: "ES6+, async/await, DOM" },
-  { name: "Discord.js", level: 93, color: "#5865F2", icon: "DJ", desc: "Bots, slash commands" },
-  { name: "Node.js", level: 88, color: "#339933", icon: "NJ", desc: "API REST, serveurs" },
-  { name: "HTML/CSS", level: 95, color: "#E34F26", icon: "HC", desc: "Responsive, animations" },
-  { name: "React", level: 80, color: "#61DAFB", icon: "RE", desc: "Hooks, SPA, composants" },
-  { name: "MySQL", level: 75, color: "#0F6AB4", icon: "MY", desc: "BDD, requêtes, ORM" },
-  { name: "Lua/FiveM", level: 72, color: "#7C3AED", icon: "LU", desc: "Scripts RP, NUI" },
+  { name: "JavaScript", level: 90, color: "#F7DF1E", icon: "JS", desc: "ES6+, async/await, DOM, modules" },
+  { name: "Discord.js", level: 93, color: "#5865F2", icon: "DJ", desc: "Slash commands, events, API v10" },
+  { name: "Node.js", level: 88, color: "#339933", icon: "NJ", desc: "API REST, streams, CLI tools" },
+  { name: "HTML/CSS", level: 95, color: "#E34F26", icon: "HC", desc: "Responsive, animations, Grid/Flex" },
+  { name: "React", level: 80, color: "#61DAFB", icon: "RE", desc: "Hooks, context, SPA, composants" },
+  { name: "MySQL", level: 75, color: "#0F6AB4", icon: "MY", desc: "Requêtes, jointures, ORM, BDD" },
+  { name: "Lua/FiveM", level: 72, color: "#7C3AED", icon: "LU", desc: "Scripts RP, NUI, events serveur" },
 ];
 
 const PROJECTS = [
-  { name: "Sentinel", desc: "Système anti-raid/anti-spam avec Blacklist Globale inter-serveurs. Protection avancée pour serveurs Discord.", tags: ["Discord.js", "MySQL", "Node.js"], rank: "S", color: "#FF6B35", link: "https://sites.google.com/view/sentinelbotfr/sentinel", year: "2023" },
-  { name: "InfraBot", desc: "Backups automatiques, interface privée, logs personnalisés. Infrastructure Discord haut niveau.", tags: ["Node.js", "MySQL"], rank: "A", color: "#00D4FF", year: "2023" },
-  { name: "Arcadia", desc: "Mini-jeux interactifs avec système de récompenses et progression des joueurs.", tags: ["Discord.js", "JavaScript"], rank: "A", color: "#8B5CF6", year: "2024" },
-  { name: "Parlon!", desc: "Support anonyme avec tickets sécurisés et interface enrichie pour Discord.", tags: ["Discord.js", "MySQL", "Node.js"], rank: "A", color: "#10B981", year: "2024" },
-  { name: "WitchyBot", desc: "Expérience mystique pour événements RP avec ambiance et immersion totale.", tags: ["JavaScript", "Discord.js"], rank: "B", color: "#EC4899", year: "2023" },
-  { name: "GTA FiveM", desc: "Commandes RP avancées, gestion emplois, modes immersifs (/panicmode).", tags: ["Lua", "FiveM"], rank: "S", color: "#F59E0B", year: "2022" },
+  { name: "Sentinel", short: "Protection Discord", desc: "Sentinel est mon projet phare — un système de sécurité complet pour serveurs Discord. Anti-raid, anti-spam, et une Blacklist Globale inter-serveurs unique qui synchronise les bans entre communautés. Déployé sur des dizaines de serveurs.", tags: ["Discord.js", "MySQL", "Node.js"], rank: "S", color: "#FF6B35", link: "https://sites.google.com/view/sentinelbotfr/sentinel", year: "2023", users: "10k+" },
+  { name: "InfraBot", short: "Infrastructure Discord", desc: "Un bot d'infrastructure pour administrateurs Discord. Gestion des backups automatiques, interface de configuration privée, logs détaillés et personnalisés. Pense à tout ce qu'un admin ne veut pas gérer manuellement — InfraBot le fait.", tags: ["Node.js", "MySQL"], rank: "A", color: "#00D4FF", year: "2023", users: "500+" },
+  { name: "Arcadia", short: "Gamification", desc: "Arcadia transforme n'importe quel serveur Discord en terrain de jeu. Mini-jeux interactifs, système de progression, récompenses dynamiques. Les membres restent engagés, les communautés grandissent.", tags: ["Discord.js", "JavaScript"], rank: "A", color: "#8B5CF6", year: "2024", users: "2k+" },
+  { name: "Parlon!", short: "Support anonyme", desc: "Un système de support unique qui préserve l'anonymat des utilisateurs. Tickets sécurisés, interface enrichie pour les modérateurs, historique chiffré. Idéal pour les serveurs avec des sujets sensibles.", tags: ["Discord.js", "MySQL", "Node.js"], rank: "A", color: "#10B981", year: "2024", users: "800+" },
+  { name: "WitchyBot", short: "Événements RP", desc: "WitchyBot crée une atmosphère mystique pour vos événements RP. Messages d'ambiance, interactions thématiques, système de sorts et de rituels. Une immersion totale pour vos communautés de roleplay.", tags: ["JavaScript", "Discord.js"], rank: "B", color: "#EC4899", year: "2023", users: "300+" },
+  { name: "GTA FiveM Systems", short: "Scripting RP", desc: "Suite complète de scripts FiveM pour serveurs GTA RP. Commandes d'armes avancées, système de candidatures d'emploi, gestion des joueurs, modes immersifs comme /panicmode et /blackout. L'expérience RP ultime.", tags: ["Lua", "FiveM"], rank: "S", color: "#F59E0B", year: "2022", users: "1k+" },
 ];
 
 const TIMELINE = [
-  { year: "2022", title: "Premiers projets RP", desc: "Scripts FiveM & premiers bots Discord.", color: "#8B5CF6", icon: "🎮", side: "left" },
-  { year: "2023", title: "Systèmes avancés", desc: "Anti-raid, économie RP, handlers modulaires.", color: "#00D4FF", icon: "⚙️", side: "right" },
-  { year: "2024", title: "Automatisations & UI", desc: "Interfaces animées, infrastructure avancée.", color: "#FF6B35", icon: "🚀", side: "left" },
-  { year: "2025", title: "IA & Intelligence", desc: "Bots intelligents, détection comportementale.", color: "#10B981", icon: "🧠", side: "right" },
+  { year: "2022", title: "Les fondations", subtitle: "Premiers projets RP", desc: "Tout commence avec GTA FiveM. Scripts Lua, systèmes de jeu, premières interactions avec des milliers de joueurs. La passion pour le code est née là — créer des expériences que les gens vivent vraiment.", color: "#8B5CF6", icon: "🎮", detail: "Scripts FiveM · Lua · Premiers bots" },
+  { year: "2023", title: "La montée en puissance", subtitle: "Systèmes avancés", desc: "L'année où tout s'accélère. Sentinel, InfraBot, systèmes vocaux dynamiques, anti-raid sophistiqués. Je construis des architectures modulaires, des handlers robustes. Le code devient une discipline.", color: "#00D4FF", icon: "⚙️", detail: "Discord.js · MySQL · Node.js · Architecture" },
+  { year: "2024", title: "L'ère des interfaces", subtitle: "Automatisations & UI", desc: "Focus sur l'expérience utilisateur. Interfaces animées, automations complexes qui font gagner des heures. Arcadia, Parlon! — des projets qui mettent l'humain au centre. L'infrastructure devient invisible, l'expérience prend le devant.", color: "#FF6B35", icon: "🚀", detail: "React · UI/UX · Automations · APIs" },
+  { year: "2025", title: "Intelligence artificielle", subtitle: "IA & Systèmes cognitifs", desc: "Le futur s'ouvre. Bots avec mémoire persistante, détection de comportements suspects en temps réel, IA conversationnelle qui s'adapte. Chaque projet intègre désormais une couche d'intelligence.", color: "#10B981", icon: "🧠", detail: "IA · Machine Learning · Systèmes adaptatifs" },
 ];
 
 const SERVICES = [
-  { icon: "🤖", title: "Bots Discord", desc: "Slash commands, anti-raid, économie RP, tickets.", color: "#5865F2" },
-  { icon: "🎮", title: "Scripts FiveM", desc: "Commandes RP, gestion joueurs, modes immersifs.", color: "#F59E0B" },
-  { icon: "🌐", title: "Sites Web", desc: "React, Node.js, responsive & moderne.", color: "#00D4FF" },
-  { icon: "🛡️", title: "Sécurité", desc: "Anti-spam, blacklist globale, audit logs.", color: "#FF6B35" },
+  { icon: "🤖", title: "Bots Discord", desc: "De la slash command basique au système complet avec dashboard, base de données et logs. Je crée des bots qui font vraiment la différence sur votre serveur.", color: "#5865F2", features: ["Slash commands", "Anti-raid", "Économie RP", "Tickets"] },
+  { icon: "🎮", title: "Scripts FiveM", desc: "Scripts Lua immersifs pour serveurs GTA RP. Systèmes d'emploi, modes de jeu spéciaux, interfaces NUI personnalisées.", color: "#F59E0B", features: ["Commandes RP", "Gestion joueurs", "NUI customs", "Événements"] },
+  { icon: "🌐", title: "Sites Web", desc: "Sites modernes et responsives avec React et Node.js. Design soigné, performances optimisées, expérience utilisateur irréprochable.", color: "#00D4FF", features: ["React / Node.js", "Design moderne", "Responsive", "Animations"] },
+  { icon: "🛡️", title: "Sécurité Discord", desc: "Protection complète de votre communauté. Systèmes anti-raid, blacklist globale, audit logs et alertes en temps réel.", color: "#FF6B35", features: ["Anti-spam", "Blacklist GBL", "Audit logs", "Alertes live"] },
 ];
 
-const TICKER = ["JavaScript","Node.js","Discord.js","React","MySQL","Lua","FiveM","HTML5","CSS3","REST API","Git","Bots Discord","GTA RP","Slash Commands","UI/UX"];
+const TICKER = ["JavaScript","Node.js","Discord.js","React","MySQL","Lua","FiveM","HTML5","CSS3","REST API","Git","Bots Discord","GTA RP","Slash Commands","UI/UX","Animations","Architecture","TypeScript"];
 const RANK_COLORS = { S: "#FF6B35", A: "#00D4FF", B: "#8B5CF6", C: "#10B981" };
 const NAV = ["home","skills","projects","timeline","contact"];
+const NAV_LABELS = { home:"Accueil", skills:"Skills", projects:"Projets", timeline:"Timeline", contact:"Contact" };
 
+/* ─────────────── 3D TILT HOOK ─────────────── */
+function useTilt(intensity = 10) {
+  const ref = useRef(null);
+  const onMove = useCallback((e) => {
+    const el = ref.current; if (!el) return;
+    const r = el.getBoundingClientRect();
+    const x = e.clientX - r.left, y = e.clientY - r.top;
+    const cx = r.width / 2, cy = r.height / 2;
+    const rx = ((y - cy) / cy) * -intensity;
+    const ry = ((x - cx) / cx) * intensity;
+    el.style.transform = `perspective(900px) rotateX(${rx}deg) rotateY(${ry}deg) translateY(-6px) scale(1.02)`;
+    el.style.transition = "transform .05s ease";
+    const shine = el.querySelector(".shine");
+    if (shine) { shine.style.background = `radial-gradient(circle at ${x}px ${y}px, rgba(255,255,255,.08), transparent 60%)`; shine.style.opacity = "1"; }
+  }, [intensity]);
+  const onLeave = useCallback(() => {
+    const el = ref.current; if (!el) return;
+    el.style.transform = "perspective(900px) rotateX(0deg) rotateY(0deg) translateY(0px) scale(1)";
+    el.style.transition = "transform .4s cubic-bezier(.4,0,.2,1)";
+    const shine = el.querySelector(".shine");
+    if (shine) shine.style.opacity = "0";
+  }, []);
+  return { ref, onMouseMove: onMove, onMouseLeave: onLeave };
+}
+
+/* ─────────────── TILT CARD ─────────────── */
+function TiltCard({ children, style, className }) {
+  const tilt = useTilt(8);
+  return (
+    <div {...tilt} className={className} style={{ ...style, cursor: "default", transformStyle: "preserve-3d", willChange: "transform", position: "relative", overflow: "hidden" }}>
+      <div className="shine" style={{ position: "absolute", inset: 0, opacity: 0, pointerEvents: "none", zIndex: 10, transition: "opacity .3s", borderRadius: "inherit" }} />
+      {children}
+    </div>
+  );
+}
+
+/* ─────────────── NAV ICONS ─────────────── */
 const NAV_ICONS = {
   home:<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M3 9.5L12 3l9 6.5V20a1 1 0 01-1 1H4a1 1 0 01-1-1V9.5z"/></svg>,
   skills:<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>,
@@ -45,562 +84,570 @@ const NAV_ICONS = {
   contact:<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>,
 };
 
+/* ─────────────── MAIN APP ─────────────── */
 export default function App() {
   const [active, setActive] = useState("home");
   const [skillsAnim, setSkillsAnim] = useState(false);
   const [counters, setCounters] = useState({});
-  const [particles] = useState(() => Array.from({length:30},(_,i)=>({
-    id:i, x:Math.random()*100, size:Math.random()*2+.5,
-    speed:Math.random()*20+15, delay:Math.random()*12, opacity:Math.random()*.35+.08
+  const [mouse, setMouse] = useState({ x: 0, y: 0 });
+  const [particles] = useState(() => Array.from({ length: 30 }, (_, i) => ({
+    id: i, x: Math.random() * 100, size: Math.random() * 2 + .5,
+    speed: Math.random() * 22 + 12, delay: Math.random() * 14, opacity: Math.random() * .3 + .07
   })));
-  const roles = ["Développeur Discord Bots","Fullstack Web Dev","Architecte RP Systems","UI/UX Craftsman"];
-  const [roleIdx,setRoleIdx]=useState(0);
-  const [typed,setTyped]=useState("");
-  const [del,setDel]=useState(false);
+  const roles = ["Développeur Discord Bots", "Fullstack Web Dev", "Architecte RP Systems", "UI/UX Craftsman"];
+  const [roleIdx, setRoleIdx] = useState(0);
+  const [typed, setTyped] = useState("");
+  const [del, setDel] = useState(false);
 
-  useEffect(()=>{
-    const c=roles[roleIdx]; let t;
-    if(!del){ if(typed.length<c.length) t=setTimeout(()=>setTyped(c.slice(0,typed.length+1)),80); else t=setTimeout(()=>setDel(true),2200); }
-    else{ if(typed.length>0) t=setTimeout(()=>setTyped(c.slice(0,typed.length-1)),40); else{setDel(false);setRoleIdx(i=>(i+1)%roles.length);} }
-    return()=>clearTimeout(t);
-  },[typed,del,roleIdx]);
+  useEffect(() => {
+    const c = roles[roleIdx]; let t;
+    if (!del) { if (typed.length < c.length) t = setTimeout(() => setTyped(c.slice(0, typed.length + 1)), 78); else t = setTimeout(() => setDel(true), 2200); }
+    else { if (typed.length > 0) t = setTimeout(() => setTyped(c.slice(0, typed.length - 1)), 38); else { setDel(false); setRoleIdx(i => (i + 1) % roles.length); } }
+    return () => clearTimeout(t);
+  }, [typed, del, roleIdx]);
 
-  useEffect(()=>{
-    if(active==="skills"){
-      setTimeout(()=>setSkillsAnim(true),150);
-      SKILLS.forEach((sk,i)=>{
-        let count=0;
-        const iv=setInterval(()=>{ count+=2; if(count>=sk.level){count=sk.level;clearInterval(iv);} setCounters(p=>({...p,[sk.name]:count})); },14+i*2);
+  useEffect(() => {
+    if (active === "skills") {
+      setTimeout(() => setSkillsAnim(true), 160);
+      SKILLS.forEach((sk, i) => {
+        let n = 0;
+        const iv = setInterval(() => { n += 2; if (n >= sk.level) { n = sk.level; clearInterval(iv); } setCounters(p => ({ ...p, [sk.name]: n })); }, 13 + i * 2);
       });
     } else setSkillsAnim(false);
-  },[active]);
+  }, [active]);
 
-  const go=(s)=>setActive(s);
+  useEffect(() => {
+    const move = e => setMouse({ x: e.clientX / window.innerWidth, y: e.clientY / window.innerHeight });
+    window.addEventListener("mousemove", move);
+    return () => window.removeEventListener("mousemove", move);
+  }, []);
 
-  // SVG patterns as inline data
-  const circuitPattern = `<svg xmlns='http://www.w3.org/2000/svg' width='80' height='80'><rect fill='none' width='80' height='80'/><circle cx='40' cy='40' r='1.5' fill='%2300D4FF' opacity='.4'/><path d='M40 40 L60 40 L60 20' stroke='%2300D4FF' stroke-width='.4' fill='none' opacity='.2'/><path d='M40 40 L20 40 L20 60' stroke='%2300D4FF' stroke-width='.4' fill='none' opacity='.2'/><circle cx='60' cy='20' r='2' fill='none' stroke='%2300D4FF' stroke-width='.4' opacity='.3'/><circle cx='20' cy='60' r='2' fill='none' stroke='%2300D4FF' stroke-width='.4' opacity='.3'/></svg>`;
-  const hexPattern = `<svg xmlns='http://www.w3.org/2000/svg' width='60' height='52'><polygon points='30,2 58,17 58,47 30,62 2,47 2,17' fill='none' stroke='%23FF6B35' stroke-width='.4' opacity='.15'/></svg>`;
-  const diagPattern = `<svg xmlns='http://www.w3.org/2000/svg' width='40' height='40'><path d='M0 40 L40 0' stroke='%238B5CF6' stroke-width='.4' opacity='.15'/></svg>`;
-  const dotPattern = `<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24'><circle cx='2' cy='2' r='1' fill='%2310B981' opacity='.25'/></svg>`;
+  const go = s => setActive(s);
+
+  const circuitSvg = `<svg xmlns='http://www.w3.org/2000/svg' width='80' height='80'><circle cx='40' cy='40' r='1.5' fill='%2300D4FF' opacity='.4'/><path d='M40 40 L60 40 L60 20' stroke='%2300D4FF' stroke-width='.4' fill='none' opacity='.18'/><path d='M40 40 L20 40 L20 60' stroke='%2300D4FF' stroke-width='.4' fill='none' opacity='.18'/><circle cx='60' cy='20' r='2' fill='none' stroke='%2300D4FF' stroke-width='.4' opacity='.25'/><circle cx='20' cy='60' r='2' fill='none' stroke='%2300D4FF' stroke-width='.4' opacity='.25'/></svg>`;
+  const hexSvg = `<svg xmlns='http://www.w3.org/2000/svg' width='60' height='52'><polygon points='30,2 58,17 58,47 30,62 2,47 2,17' fill='none' stroke='%23FF6B35' stroke-width='.4' opacity='.14'/></svg>`;
+  const diagSvg = `<svg xmlns='http://www.w3.org/2000/svg' width='40' height='40'><path d='M0 40 L40 0' stroke='%238B5CF6' stroke-width='.4' opacity='.14'/></svg>`;
+  const dotSvg = `<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24'><circle cx='2' cy='2' r='1' fill='%2310B981' opacity='.22'/></svg>`;
+
+  const paralaxStyle = { transform: `translate(${mouse.x * -18}px, ${mouse.y * -12}px)`, transition: "transform .3s ease-out" };
+  const paralaxStyleSlow = { transform: `translate(${mouse.x * -8}px, ${mouse.y * -6}px)`, transition: "transform .5s ease-out" };
 
   return (
-    <div style={{fontFamily:"'Exo 2','Segoe UI',sans-serif",background:"#05050E",color:"#E2E8F0",minHeight:"100vh",display:"flex",overflow:"hidden"}}>
+    <div style={{ fontFamily: "'Exo 2','Segoe UI',sans-serif", background: "#05050E", color: "#E2E8F0", minHeight: "100vh", display: "flex", overflow: "hidden" }}>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Exo+2:ital,wght@0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,300&display=swap');
         @keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
-        @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+        @keyframes float{0%,100%{transform:translateY(0) rotate(0deg)}33%{transform:translateY(-8px) rotate(.5deg)}66%{transform:translateY(-4px) rotate(-.5deg)}}
         @keyframes scanline{0%{top:-10%}100%{top:110%}}
         @keyframes ticker{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
-        @keyframes fadeUp{from{opacity:0;transform:translateY(28px)}to{opacity:1;transform:translateY(0)}}
+        @keyframes fadeUp{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}
         @keyframes fadeIn{from{opacity:0}to{opacity:1}}
-        @keyframes rotateRing{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
-        @keyframes pulse{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(.88);opacity:.55}}
-        @keyframes particleUp{0%{transform:translateY(0);opacity:0}10%{opacity:1}90%{opacity:.7}100%{transform:translateY(-100vh);opacity:0}}
-        @keyframes cardIn{from{opacity:0;transform:translateY(32px) scale(.96)}to{opacity:1;transform:translateY(0) scale(1)}}
-        @keyframes numberUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
-        @keyframes glowPulse{0%,100%{box-shadow:0 0 12px rgba(0,212,255,.2)}50%{box-shadow:0 0 32px rgba(0,212,255,.55)}}
-        @keyframes borderSpin{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
-        @keyframes bannerShift{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
-        @keyframes lineGrow{from{scaleX:0}to{scaleX:1}}
-        @keyframes shimmer{0%{transform:translateX(-100%)}100%{transform:translateX(200%)}}
+        @keyframes rotRing{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+        @keyframes rotRingRev{from{transform:rotate(0deg)}to{transform:rotate(-360deg)}}
+        @keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(.85)}}
+        @keyframes ptcl{0%{transform:translateY(0);opacity:0}8%{opacity:1}92%{opacity:.6}100%{transform:translateY(-100vh);opacity:0}}
+        @keyframes cardIn{from{opacity:0;transform:translateY(36px) scale(.95)}to{opacity:1;transform:translateY(0) scale(1)}}
+        @keyframes numUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+        @keyframes glowNav{0%,100%{box-shadow:0 0 10px rgba(0,212,255,.18)}50%{box-shadow:0 0 28px rgba(0,212,255,.5)}}
+        @keyframes borderAnim{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
+        @keyframes slideIn{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+        @keyframes wobble{0%,100%{transform:rotate(0deg)}25%{transform:rotate(-3deg)}75%{transform:rotate(3deg)}}
+        @keyframes countUp{from{transform:scale(.8) translateY(5px);opacity:0}to{transform:scale(1) translateY(0);opacity:1}}
+        @keyframes gradMove{0%,100%{background-position:0% 50%}50%{background-position:100% 50%}}
         *{box-sizing:border-box;margin:0;padding:0}
-        html{-webkit-tap-highlight-color:transparent}
-        *::-webkit-scrollbar{width:3px}*::-webkit-scrollbar-thumb{background:rgba(0,212,255,.25);border-radius:2px}
-        .tk{overflow:hidden;width:100%}.ti{display:flex;width:max-content;animation:ticker 40s linear infinite}.ti:hover{animation-play-state:paused}
-        .fade-up{animation:fadeUp .65s ease both}
-        .page-in{animation:fadeIn .3s ease both}
-        .card-in-1{animation:cardIn .55s .05s ease both}
-        .card-in-2{animation:cardIn .55s .12s ease both}
-        .card-in-3{animation:cardIn .55s .19s ease both}
-        .card-in-4{animation:cardIn .55s .26s ease both}
-        .card-in-5{animation:cardIn .55s .33s ease both}
-        .card-in-6{animation:cardIn .55s .4s ease both}
-        .glow-border{position:relative;}.glow-border::before{content:'';position:absolute;inset:-1px;background:linear-gradient(135deg,#00D4FF33,transparent,#FF6B3533,transparent,#8B5CF633);border-radius:inherit;z-index:-1;}
-        .hover-lift{transition:all .3s cubic-bezier(.4,0,.2,1)}.hover-lift:hover{transform:translateY(-6px)!important}
-        .btn-cyan{transition:all .25s}.btn-cyan:hover{background:#1ae3ff!important;box-shadow:0 0 35px rgba(0,212,255,.5)!important;transform:translateY(-2px)!important}
-        .btn-ghost:hover{border-color:rgba(226,232,240,.35)!important;background:rgba(226,232,240,.07)!important;transform:translateY(-2px)!important}
-        .nav-btn{transition:all .2s}.nav-btn:hover{color:#00D4FF!important;background:rgba(0,212,255,.09)!important;border-color:rgba(0,212,255,.3)!important}
-        .skill-fill{transition:width 1.3s cubic-bezier(.4,0,.2,1)}
-        /* ═══ MOBILE ═══ */
+        html{-webkit-tap-highlight-color:transparent;scroll-behavior:smooth}
+        *::-webkit-scrollbar{width:3px}*::-webkit-scrollbar-thumb{background:rgba(0,212,255,.22);border-radius:2px}
+        .tk{overflow:hidden;width:100%}.ti{display:flex;width:max-content;animation:ticker 45s linear infinite}.ti:hover{animation-play-state:paused}
+        .fu{animation:fadeUp .65s ease both}
+        .pi{animation:fadeIn .35s ease both}
+        .ci1{animation:cardIn .6s .05s ease both}
+        .ci2{animation:cardIn .6s .13s ease both}
+        .ci3{animation:cardIn .6s .21s ease both}
+        .ci4{animation:cardIn .6s .29s ease both}
+        .ci5{animation:cardIn .6s .37s ease both}
+        .ci6{animation:cardIn .6s .45s ease both}
+        .ci7{animation:cardIn .6s .53s ease both}
+        .nb:hover{color:#00D4FF!important;background:rgba(0,212,255,.1)!important;border-color:rgba(0,212,255,.35)!important}
+        .btn-c{transition:all .25s}.btn-c:hover{background:#1ae3ff!important;box-shadow:0 0 36px rgba(0,212,255,.55)!important;transform:translateY(-3px) scale(1.02)!important}
+        .btn-g{transition:all .25s}.btn-g:hover{border-color:rgba(226,232,240,.4)!important;background:rgba(226,232,240,.08)!important;transform:translateY(-3px)!important}
+        .sf{transition:width 1.4s cubic-bezier(.4,0,.2,1)}
+        .gcard{background:rgba(10,10,22,.92);border:1px solid rgba(255,255,255,.07);backdropFilter:blur(12px)}
+        .tilt-card{transition:transform .4s cubic-bezier(.4,0,.2,1),box-shadow .4s ease}
+        /* MOBILE */
         @media(max-width:768px){
-          .sidebar{display:none!important}.bottom-nav{display:flex!important}
-          .main{margin-left:0!important;padding-bottom:72px!important}
-          .hero-wrap{flex-direction:column-reverse!important;padding:24px 18px 32px!important;min-height:auto!important;gap:24px!important}
-          .hero-right{width:100%!important;align-items:center!important}
-          .hero-avatar-wrap{width:130px!important;height:130px!important}
-          .hero-left{text-align:center!important}
-          .hero-left h1{font-size:clamp(42px,13vw,68px)!important}
-          .hero-btns{justify-content:center!important}
-          .hero-stats{justify-content:center!important}
-          .sp{padding:32px 18px 24px!important}
-          .grid4{grid-template-columns:1fr 1fr!important}
-          .grid3{grid-template-columns:1fr!important}
-          .grid3h{grid-template-columns:1fr!important}
-          .grid7{grid-template-columns:repeat(4,1fr)!important}
-          .skills-grid{grid-template-columns:1fr 1fr!important}
-          .cat-grid{grid-template-columns:1fr!important}
-          .tl-wrap{grid-template-columns:1fr!important}
-          .contact-grid{grid-template-columns:1fr!important}
-          .quote-row{flex-direction:column!important;gap:8px!important}
-          .sec-title{font-size:clamp(32px,9vw,44px)!important}
-          .banner-area{padding:28px 18px 24px!important;min-height:140px!important}
-          .banner-bg-text{font-size:clamp(64px,20vw,100px)!important;opacity:.04!important}
+          .sb{display:none!important}.bnav{display:flex!important}
+          .mc{margin-left:0!important;padding-bottom:72px!important}
+          .hw{flex-direction:column-reverse!important;padding:24px 18px 32px!important;min-height:auto!important;gap:20px!important}
+          .hr{width:100%!important;align-items:center!important}
+          .hl{text-align:center!important}.hl h1{font-size:clamp(42px,13vw,68px)!important}
+          .hb{justify-content:center!important}.hs{justify-content:center!important}
+          .sp{padding:32px 18px!important}
+          .g4{grid-template-columns:1fr 1fr!important}
+          .g3{grid-template-columns:1fr!important}
+          .g7{grid-template-columns:repeat(4,1fr)!important}
+          .sg{grid-template-columns:1fr 1fr!important}
+          .cg{grid-template-columns:1fr!important}
+          .tg{grid-template-columns:1fr!important}
+          .contg{grid-template-columns:1fr!important}
+          .qr{flex-direction:column!important;gap:8px!important}
+          .st{font-size:clamp(32px,9vw,46px)!important}
+          .barea{padding:28px 18px 24px!important;min-height:130px!important}
+          .bbt{font-size:clamp(60px,18vw,90px)!important}
         }
         @media(max-width:420px){
-          .grid4{grid-template-columns:1fr!important}
-          .grid7{grid-template-columns:repeat(3,1fr)!important}
+          .g4{grid-template-columns:1fr!important}.g7{grid-template-columns:repeat(3,1fr)!important}
         }
       `}</style>
 
-      {/* ── GLOBAL PARTICLES ── */}
-      <div style={{position:"fixed",inset:0,pointerEvents:"none",zIndex:0,overflow:"hidden"}}>
-        {particles.map(p=>(
-          <div key={p.id} style={{position:"absolute",left:`${p.x}%`,bottom:"-5px",width:`${p.size}px`,height:`${p.size}px`,borderRadius:"50%",background:"#00D4FF",opacity:p.opacity,animation:`particleUp ${p.speed}s ${p.delay}s linear infinite`}} />
-        ))}
-        <div style={{position:"absolute",top:"-20%",left:"-10%",width:"800px",height:"800px",borderRadius:"50%",background:"radial-gradient(circle,rgba(0,212,255,.05) 0%,transparent 60%)"}} />
-        <div style={{position:"absolute",bottom:"-20%",right:"-10%",width:"700px",height:"700px",borderRadius:"50%",background:"radial-gradient(circle,rgba(139,92,246,.05) 0%,transparent 60%)"}} />
+      {/* ── PARTICLES + BG ── */}
+      <div style={{ position: "fixed", inset: 0, pointerEvents: "none", zIndex: 0, overflow: "hidden" }}>
+        {particles.map(p => <div key={p.id} style={{ position: "absolute", left: `${p.x}%`, bottom: "-4px", width: `${p.size}px`, height: `${p.size}px`, borderRadius: "50%", background: "#00D4FF", opacity: p.opacity, animation: `ptcl ${p.speed}s ${p.delay}s linear infinite` }} />)}
+        <div style={{ position: "absolute", top: "-20%", left: "-10%", width: "800px", height: "800px", borderRadius: "50%", background: "radial-gradient(circle,rgba(0,212,255,.05) 0%,transparent 60%)", ...paralaxStyleSlow }} />
+        <div style={{ position: "absolute", bottom: "-20%", right: "-10%", width: "700px", height: "700px", borderRadius: "50%", background: "radial-gradient(circle,rgba(139,92,246,.05) 0%,transparent 60%)", ...paralaxStyleSlow }} />
+        <div style={{ position: "absolute", top: "40%", left: "50%", width: "500px", height: "500px", borderRadius: "50%", background: "radial-gradient(circle,rgba(255,107,53,.03) 0%,transparent 60%)", ...paralaxStyle }} />
       </div>
 
-      {/* ── SIDEBAR desktop ── */}
-      <nav className="sidebar" style={{position:"fixed",left:0,top:0,bottom:0,width:"72px",background:"rgba(8,8,18,.98)",borderRight:"1px solid rgba(0,212,255,.1)",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:"8px",zIndex:100,backdropFilter:"blur(24px)"}}>
-        <div style={{position:"absolute",top:"18px",width:"40px",height:"40px",border:"1.5px solid #00D4FF",display:"flex",alignItems:"center",justifyContent:"center",fontSize:"16px",fontWeight:900,color:"#00D4FF",animation:"glowPulse 3s ease-in-out infinite"}}>M</div>
-        {NAV.map(s=>(
-          <button key={s} className="nav-btn" onClick={()=>go(s)} title={s}
-            style={{width:"46px",height:"46px",border:active===s?"1px solid rgba(0,212,255,.5)":"1px solid rgba(255,255,255,.05)",background:active===s?"rgba(0,212,255,.13)":"transparent",color:active===s?"#00D4FF":"#3A4560",borderRadius:"10px",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",transition:"all .2s",boxShadow:active===s?"0 0 18px rgba(0,212,255,.28),inset 0 0 12px rgba(0,212,255,.05)":"none",transform:active===s?"scale(1.06)":"scale(1)"}}>
+      {/* ── SIDEBAR ── */}
+      <nav className="sb" style={{ position: "fixed", left: 0, top: 0, bottom: 0, width: "72px", background: "rgba(8,8,18,.98)", borderRight: "1px solid rgba(0,212,255,.1)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "8px", zIndex: 100, backdropFilter: "blur(24px)" }}>
+        <div style={{ position: "absolute", top: "18px", width: "40px", height: "40px", border: "1.5px solid #00D4FF", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "16px", fontWeight: 900, color: "#00D4FF", animation: "glowNav 3s ease-in-out infinite" }}>M</div>
+        {NAV.map(s => (
+          <button key={s} className="nb" onClick={() => go(s)} title={NAV_LABELS[s]}
+            style={{ width: "46px", height: "46px", border: active === s ? "1px solid rgba(0,212,255,.5)" : "1px solid rgba(255,255,255,.05)", background: active === s ? "rgba(0,212,255,.13)" : "transparent", color: active === s ? "#00D4FF" : "#3A4560", borderRadius: "10px", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", transition: "all .2s", boxShadow: active === s ? "0 0 20px rgba(0,212,255,.28),inset 0 0 12px rgba(0,212,255,.06)" : "none", transform: active === s ? "scale(1.07)" : "scale(1)" }}>
             {NAV_ICONS[s]}
           </button>
         ))}
-        <a href="https://github.com/Mrexdev" target="_blank" rel="noreferrer"
-          style={{position:"absolute",bottom:"18px",width:"36px",height:"36px",display:"flex",alignItems:"center",justifyContent:"center",color:"#3A4560",textDecoration:"none",transition:"color .2s"}}
-          onMouseOver={e=>e.currentTarget.style.color="#E2E8F0"} onMouseOut={e=>e.currentTarget.style.color="#3A4560"}>
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+        <a href="https://github.com/Mrexdev" target="_blank" rel="noreferrer" style={{ position: "absolute", bottom: "18px", width: "36px", height: "36px", display: "flex", alignItems: "center", justifyContent: "center", color: "#3A4560", textDecoration: "none", transition: "color .2s" }} onMouseOver={e => e.currentTarget.style.color = "#E2E8F0"} onMouseOut={e => e.currentTarget.style.color = "#3A4560"}>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z" /></svg>
         </a>
       </nav>
 
-      {/* ── BOTTOM NAV mobile ── */}
-      <nav className="bottom-nav" style={{display:"none",position:"fixed",bottom:0,left:0,right:0,height:"64px",background:"rgba(6,6,16,.98)",borderTop:"1px solid rgba(0,212,255,.1)",zIndex:100,backdropFilter:"blur(20px)",alignItems:"center",justifyContent:"space-around",padding:"0 6px"}}>
-        {NAV.map(s=>(
-          <button key={s} onClick={()=>go(s)}
-            style={{display:"flex",flexDirection:"column",alignItems:"center",gap:"3px",background:"none",border:"none",cursor:"pointer",color:active===s?"#00D4FF":"#3A4560",transition:"all .2s",padding:"8px 6px",flex:1}}>
+      {/* ── MOBILE BOTTOM NAV ── */}
+      <nav className="bnav" style={{ display: "none", position: "fixed", bottom: 0, left: 0, right: 0, height: "64px", background: "rgba(6,6,16,.98)", borderTop: "1px solid rgba(0,212,255,.1)", zIndex: 100, backdropFilter: "blur(20px)", alignItems: "center", justifyContent: "space-around", padding: "0 6px" }}>
+        {NAV.map(s => (
+          <button key={s} onClick={() => go(s)} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "3px", background: "none", border: "none", cursor: "pointer", color: active === s ? "#00D4FF" : "#3A4560", transition: "all .2s", padding: "8px 6px", flex: 1 }}>
             {NAV_ICONS[s]}
-            <span style={{fontSize:"8px",letterSpacing:".04em",textTransform:"uppercase"}}>{s}</span>
+            <span style={{ fontSize: "8px", letterSpacing: ".04em", textTransform: "uppercase" }}>{s}</span>
           </button>
         ))}
       </nav>
 
-      {/* ══════════════════════════════ MAIN ══════════════════════════════ */}
-      <main className="main" style={{marginLeft:"72px",flex:1,minHeight:"100vh",position:"relative",zIndex:1,overflowY:"auto"}}>
+      {/* ══════════════════════════════════ MAIN ══════════════════════════════════ */}
+      <main className="mc" style={{ marginLeft: "72px", flex: 1, minHeight: "100vh", position: "relative", zIndex: 1, overflowY: "auto" }}>
 
-        {/* ══════ HOME ══════ */}
-        {active==="home" && (
-          <div className="page-in">
+        {/* ════════ HOME ════════ */}
+        {active === "home" && (
+          <div className="pi">
             {/* HERO */}
-            <div className="hero-wrap" style={{display:"flex",alignItems:"center",padding:"56px 80px 48px",gap:"40px",position:"relative",overflow:"hidden",minHeight:"520px"}}>
-              <div style={{position:"absolute",inset:0,zIndex:0}}>
-                <img src="https://i.pinimg.com/736x/a4/a9/a6/a4a9a6a8e3bae75af733926c7cfec1b2.jpg" alt="" style={{width:"100%",height:"100%",objectFit:"cover",objectPosition:"center top",opacity:.18,filter:"saturate(.5)"}} />
-                <div style={{position:"absolute",inset:0,background:"linear-gradient(105deg,rgba(5,5,14,.98) 0%,rgba(5,5,14,.78) 55%,rgba(5,5,14,.12) 100%)"}} />
-                <div style={{position:"absolute",inset:0,background:"linear-gradient(to bottom,transparent 40%,rgba(5,5,14,1) 100%)"}} />
+            <div className="hw" style={{ display: "flex", alignItems: "center", padding: "56px 80px 48px", gap: "40px", position: "relative", overflow: "hidden", minHeight: "520px" }}>
+              <div style={{ position: "absolute", inset: 0, zIndex: 0 }}>
+                <img src="https://i.pinimg.com/736x/a4/a9/a6/a4a9a6a8e3bae75af733926c7cfec1b2.jpg" alt="" style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center top", opacity: .18, filter: "saturate(.5)", ...paralaxStyle }} />
+                <div style={{ position: "absolute", inset: 0, background: "linear-gradient(105deg,rgba(5,5,14,.98) 0%,rgba(5,5,14,.8) 55%,rgba(5,5,14,.1) 100%)" }} />
+                <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom,transparent 40%,rgba(5,5,14,1) 100%)" }} />
               </div>
-              <div className="hero-left fade-up" style={{flex:1,position:"relative",zIndex:1}}>
-                <div style={{display:"flex",alignItems:"center",gap:"10px",marginBottom:"20px",flexWrap:"wrap"}}>
-                  <div style={{padding:"4px 14px",border:"1px solid #FF6B35",fontSize:"10px",letterSpacing:".35em",textTransform:"uppercase",color:"#FF6B35",fontWeight:700,boxShadow:"0 0 16px rgba(255,107,53,.35)"}}>S — RANK</div>
-                  <span style={{fontSize:"10px",letterSpacing:".2em",color:"#3A4560",textTransform:"uppercase"}}>Developer A.K.A</span>
+              {/* LEFT */}
+              <div className="hl fu" style={{ flex: 1, position: "relative", zIndex: 1 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "20px", flexWrap: "wrap" }}>
+                  <div style={{ padding: "4px 14px", border: "1px solid #FF6B35", fontSize: "10px", letterSpacing: ".35em", textTransform: "uppercase", color: "#FF6B35", fontWeight: 700, boxShadow: "0 0 16px rgba(255,107,53,.35)", animation: "wobble 4s 2s ease-in-out infinite" }}>S — RANK</div>
+                  <span style={{ fontSize: "10px", letterSpacing: ".2em", color: "#3A4560", textTransform: "uppercase" }}>Developer A.K.A</span>
                 </div>
-                <h1 style={{fontSize:"clamp(48px,7vw,100px)",fontWeight:900,lineHeight:.88,letterSpacing:"-.03em",marginBottom:"8px",background:"linear-gradient(130deg,#E2E8F0 0%,rgba(226,232,240,.38) 100%)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent"}}>๖̶ζ͜͡Mrex</h1>
-                <div style={{height:"34px",display:"flex",alignItems:"center",marginBottom:"16px"}}>
-                  <span style={{color:"#00D4FF",fontSize:"16px",fontWeight:300,letterSpacing:".05em"}}>
-                    {typed}<span style={{display:"inline-block",width:"2px",height:"16px",background:"#00D4FF",marginLeft:"2px",verticalAlign:"middle",animation:"blink 1s step-end infinite"}} />
+                <h1 style={{ fontSize: "clamp(48px,7vw,100px)", fontWeight: 900, lineHeight: .88, letterSpacing: "-.03em", marginBottom: "8px", background: "linear-gradient(130deg,#E2E8F0 10%,rgba(0,212,255,.6) 50%,rgba(226,232,240,.4) 100%)", backgroundSize: "200% 200%", animation: "gradMove 6s ease infinite", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>๖̶ζ͜͡Mrex</h1>
+                <div style={{ height: "34px", display: "flex", alignItems: "center", marginBottom: "16px" }}>
+                  <span style={{ color: "#00D4FF", fontSize: "16px", fontWeight: 300, letterSpacing: ".05em" }}>
+                    {typed}<span style={{ display: "inline-block", width: "2px", height: "16px", background: "#00D4FF", marginLeft: "2px", verticalAlign: "middle", animation: "blink 1s step-end infinite" }} />
                   </span>
                 </div>
-                <p style={{fontSize:"14px",lineHeight:1.85,color:"#8892A4",marginBottom:"28px",maxWidth:"420px"}}>
-                  Développeur fullstack spécialisé dans les <span style={{color:"#E2E8F0"}}>bots Discord</span>, l'automatisation <span style={{color:"#E2E8F0"}}>RP</span> et les projets immersifs.
+                <p style={{ fontSize: "14px", lineHeight: 1.85, color: "#8892A4", marginBottom: "10px", maxWidth: "440px" }}>
+                  Je suis <span style={{ color: "#E2E8F0", fontWeight: 500 }}>Mrex</span>, développeur passionné spécialisé dans les <span style={{ color: "#5865F2" }}>bots Discord</span>, les <span style={{ color: "#F59E0B" }}>systèmes FiveM RP</span> et le <span style={{ color: "#61DAFB" }}>développement web</span>.
                 </p>
-                <div className="hero-btns" style={{display:"flex",gap:"12px",marginBottom:"36px",flexWrap:"wrap"}}>
-                  <button className="btn-cyan" onClick={()=>go("projects")} style={{padding:"12px 26px",background:"#00D4FF",color:"#05050E",border:"none",fontSize:"12px",fontWeight:700,letterSpacing:".12em",textTransform:"uppercase",cursor:"pointer",transition:"all .25s",boxShadow:"0 0 22px rgba(0,212,255,.28)"}}>Voir les projets →</button>
-                  <button className="btn-ghost" onClick={()=>go("contact")} style={{padding:"12px 26px",background:"transparent",color:"#E2E8F0",border:"1px solid rgba(226,232,240,.15)",fontSize:"12px",fontWeight:400,letterSpacing:".12em",textTransform:"uppercase",cursor:"pointer",transition:"all .25s"}}>Me contacter</button>
+                <p style={{ fontSize: "13px", lineHeight: 1.75, color: "#5A6478", marginBottom: "28px", maxWidth: "420px" }}>
+                  Depuis 2022, je construis des expériences numériques immersives — des bots qui protègent des milliers de serveurs, des scripts RP qui font vivre des aventures, des interfaces qui marquent.
+                </p>
+                <div className="hb" style={{ display: "flex", gap: "12px", marginBottom: "36px", flexWrap: "wrap" }}>
+                  <button className="btn-c" onClick={() => go("projects")} style={{ padding: "12px 26px", background: "#00D4FF", color: "#05050E", border: "none", fontSize: "12px", fontWeight: 700, letterSpacing: ".12em", textTransform: "uppercase", cursor: "pointer", boxShadow: "0 0 22px rgba(0,212,255,.28)" }}>Voir les projets →</button>
+                  <button className="btn-g" onClick={() => go("contact")} style={{ padding: "12px 26px", background: "transparent", color: "#E2E8F0", border: "1px solid rgba(226,232,240,.18)", fontSize: "12px", fontWeight: 400, letterSpacing: ".12em", textTransform: "uppercase", cursor: "pointer" }}>Me contacter</button>
                 </div>
-                <div className="hero-stats" style={{display:"flex",gap:"32px",flexWrap:"wrap"}}>
-                  {[{num:"6+",label:"Bots déployés"},{num:"2022",label:"Depuis"},{num:"7",label:"Technos"},{num:"∞",label:"Passion"}].map((s,i)=>(
-                    <div key={s.label} style={{animation:`numberUp .5s ${i*.1}s ease both`}}>
-                      <div style={{fontSize:"26px",fontWeight:800,color:"#00D4FF",lineHeight:1}}>{s.num}</div>
-                      <div style={{fontSize:"9px",letterSpacing:".18em",color:"#3A4560",textTransform:"uppercase",marginTop:"4px"}}>{s.label}</div>
+                <div className="hs" style={{ display: "flex", gap: "32px", flexWrap: "wrap" }}>
+                  {[{ num: "6+", label: "Bots déployés" }, { num: "2022", label: "Depuis" }, { num: "7", label: "Technos" }, { num: "∞", label: "Passion" }].map((s, i) => (
+                    <div key={s.label} style={{ animation: `numUp .5s ${i * .1}s ease both` }}>
+                      <div style={{ fontSize: "26px", fontWeight: 800, color: "#00D4FF", lineHeight: 1 }}>{s.num}</div>
+                      <div style={{ fontSize: "9px", letterSpacing: ".18em", color: "#3A4560", textTransform: "uppercase", marginTop: "4px" }}>{s.label}</div>
                     </div>
                   ))}
                 </div>
               </div>
-              <div className="hero-right fade-up" style={{display:"flex",flexDirection:"column",alignItems:"center",gap:"14px",flexShrink:0,position:"relative",zIndex:1}}>
-                <div style={{position:"relative"}}>
-                  <div style={{position:"absolute",inset:"-14px",borderRadius:"50%",border:"1px solid rgba(0,212,255,.18)",animation:"rotateRing 8s linear infinite"}} />
-                  <div style={{position:"absolute",inset:"-26px",borderRadius:"50%",border:"1px dashed rgba(255,107,53,.1)",animation:"rotateRing 14s linear infinite reverse"}} />
-                  <div className="hero-avatar-wrap" style={{width:"180px",height:"180px",borderRadius:"50%",border:"1.5px solid rgba(0,212,255,.3)",overflow:"hidden",boxShadow:"0 0 40px rgba(0,212,255,.15)",animation:"float 6s ease-in-out infinite",position:"relative"}}>
-                    <img src="https://i.pinimg.com/736x/a4/a9/a6/a4a9a6a8e3bae75af733926c7cfec1b2.jpg" alt="Mrex" style={{width:"100%",height:"100%",objectFit:"cover"}} />
-                    <div style={{position:"absolute",left:0,right:0,height:"8%",background:"linear-gradient(transparent,rgba(0,212,255,.08),transparent)",animation:"scanline 3.5s linear infinite",pointerEvents:"none"}} />
+              {/* RIGHT */}
+              <div className="hr" style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "14px", flexShrink: 0, position: "relative", zIndex: 1 }}>
+                <div style={{ position: "relative" }}>
+                  <div style={{ position: "absolute", inset: "-14px", borderRadius: "50%", border: "1px solid rgba(0,212,255,.16)", animation: "rotRing 8s linear infinite" }} />
+                  <div style={{ position: "absolute", inset: "-26px", borderRadius: "50%", border: "1px dashed rgba(255,107,53,.1)", animation: "rotRingRev 14s linear infinite" }} />
+                  <div style={{ width: "180px", height: "180px", borderRadius: "50%", border: "1.5px solid rgba(0,212,255,.3)", overflow: "hidden", boxShadow: "0 0 40px rgba(0,212,255,.14)", animation: "float 6s ease-in-out infinite", position: "relative" }}>
+                    <img src="https://i.pinimg.com/736x/a4/a9/a6/a4a9a6a8e3bae75af733926c7cfec1b2.jpg" alt="Mrex" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                    <div style={{ position: "absolute", left: 0, right: 0, height: "8%", background: "linear-gradient(transparent,rgba(0,212,255,.08),transparent)", animation: "scanline 3.5s linear infinite", pointerEvents: "none" }} />
                   </div>
                 </div>
-                <div style={{textAlign:"center",marginTop:"14px"}}>
-                  <div style={{fontSize:"10px",letterSpacing:".2em",color:"#3A4560",textTransform:"uppercase",marginBottom:"6px"}}>MREXDEV</div>
-                  <div style={{display:"flex",alignItems:"center",justifyContent:"center",gap:"6px"}}>
-                    <div style={{width:"7px",height:"7px",borderRadius:"50%",background:"#10B981",boxShadow:"0 0 6px #10B981",animation:"pulse 2s ease-in-out infinite"}} />
-                    <span style={{fontSize:"11px",color:"#10B981",letterSpacing:".1em"}}>Open to work</span>
+                <div style={{ textAlign: "center", marginTop: "14px" }}>
+                  <div style={{ fontSize: "10px", letterSpacing: ".2em", color: "#3A4560", textTransform: "uppercase", marginBottom: "6px" }}>MREXDEV</div>
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "6px" }}>
+                    <div style={{ width: "7px", height: "7px", borderRadius: "50%", background: "#10B981", boxShadow: "0 0 6px #10B981", animation: "pulse 2s ease-in-out infinite" }} />
+                    <span style={{ fontSize: "11px", color: "#10B981", letterSpacing: ".1em" }}>Open to work</span>
                   </div>
                 </div>
-                <div style={{padding:"10px 14px",background:"rgba(255,107,53,.06)",border:"1px solid rgba(255,107,53,.22)",display:"flex",alignItems:"center",gap:"10px",width:"180px",backdropFilter:"blur(8px)"}}>
-                  <div style={{width:"30px",height:"30px",border:"1.5px solid #FF6B35",display:"flex",alignItems:"center",justifyContent:"center",fontSize:"13px",fontWeight:900,color:"#FF6B35",boxShadow:"0 0 10px rgba(255,107,53,.3)",flexShrink:0}}>S</div>
-                  <div><div style={{fontSize:"8px",letterSpacing:".2em",color:"#FF6B35",textTransform:"uppercase"}}>S-Rank Developer</div><div style={{fontSize:"11px",color:"#8892A4",marginTop:"1px"}}>Bot Architect</div></div>
+                <div style={{ padding: "10px 14px", background: "rgba(255,107,53,.06)", border: "1px solid rgba(255,107,53,.22)", display: "flex", alignItems: "center", gap: "10px", width: "180px" }}>
+                  <div style={{ width: "30px", height: "30px", border: "1.5px solid #FF6B35", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "13px", fontWeight: 900, color: "#FF6B35", boxShadow: "0 0 10px rgba(255,107,53,.3)", flexShrink: 0 }}>S</div>
+                  <div><div style={{ fontSize: "8px", letterSpacing: ".2em", color: "#FF6B35", textTransform: "uppercase" }}>S-Rank Developer</div><div style={{ fontSize: "11px", color: "#8892A4", marginTop: "1px" }}>Bot Architect</div></div>
                 </div>
               </div>
             </div>
 
             {/* SERVICES */}
-            <div className="sp" style={{padding:"0 80px 36px"}}>
-              <div style={{fontSize:"9px",letterSpacing:".3em",color:"#3A4560",textTransform:"uppercase",marginBottom:"12px"}}>// ce que je fais</div>
-              <div className="grid4" style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:"14px"}}>
-                {SERVICES.map((s,i)=>(
-                  <div key={s.title} className={`hover-lift card-in-${i+1}`}
-                    style={{padding:"22px 18px",background:"rgba(12,12,24,.9)",border:"1px solid rgba(255,255,255,.06)",borderTop:`2px solid ${s.color}`,cursor:"default",backdropFilter:"blur(8px)",position:"relative",overflow:"hidden"}}
-                    onMouseOver={e=>{ e.currentTarget.style.background=`linear-gradient(135deg,${s.color}10,rgba(12,12,24,.96))`; e.currentTarget.style.borderColor=s.color+"44"; }}
-                    onMouseOut={e=>{ e.currentTarget.style.background="rgba(12,12,24,.9)"; e.currentTarget.style.borderColor="rgba(255,255,255,.06)"; }}>
-                    <div style={{position:"absolute",right:"-10px",bottom:"-14px",fontSize:"72px",opacity:.04,pointerEvents:"none"}}>{s.icon}</div>
-                    <div style={{fontSize:"24px",marginBottom:"10px"}}>{s.icon}</div>
-                    <h3 style={{fontSize:"13px",fontWeight:700,marginBottom:"6px",color:"#E2E8F0"}}>{s.title}</h3>
-                    <p style={{fontSize:"11px",color:"#8892A4",lineHeight:1.65}}>{s.desc}</p>
-                  </div>
+            <div className="sp" style={{ padding: "0 80px 40px" }}>
+              <div style={{ marginBottom: "20px" }}>
+                <div style={{ fontSize: "9px", letterSpacing: ".3em", color: "#3A4560", textTransform: "uppercase", marginBottom: "6px" }}>// ce que je construis</div>
+                <p style={{ fontSize: "14px", color: "#5A6478", maxWidth: "600px" }}>Des solutions sur mesure pour chaque besoin — de la protection de serveur aux expériences RP immersives.</p>
+              </div>
+              <div className="g4" style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: "14px" }}>
+                {SERVICES.map((s, i) => (
+                  <TiltCard key={s.title} className={`ci${i + 1}`} style={{ padding: "24px 20px", background: "rgba(10,10,22,.92)", border: "1px solid rgba(255,255,255,.07)", borderTop: `2px solid ${s.color}` }}>
+                    <div style={{ position: "absolute", right: "-8px", bottom: "-12px", fontSize: "70px", opacity: .04, pointerEvents: "none", lineHeight: 1 }}>{s.icon}</div>
+                    <div style={{ fontSize: "26px", marginBottom: "12px" }}>{s.icon}</div>
+                    <h3 style={{ fontSize: "14px", fontWeight: 700, marginBottom: "6px", color: "#E2E8F0" }}>{s.title}</h3>
+                    <p style={{ fontSize: "11px", color: "#8892A4", lineHeight: 1.7, marginBottom: "14px" }}>{s.desc}</p>
+                    <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+                      {s.features.map(f => (
+                        <div key={f} style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                          <div style={{ width: "4px", height: "4px", borderRadius: "50%", background: s.color, flexShrink: 0 }} />
+                          <span style={{ fontSize: "10px", color: "#5A6478" }}>{f}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </TiltCard>
                 ))}
               </div>
             </div>
 
-            {/* FEATURED PROJECTS */}
-            <div className="sp" style={{padding:"0 80px 36px"}}>
-              <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:"12px"}}>
-                <div style={{fontSize:"9px",letterSpacing:".3em",color:"#3A4560",textTransform:"uppercase"}}>// projets phares</div>
-                <button onClick={()=>go("projects")} style={{fontSize:"11px",color:"#00D4FF",background:"none",border:"none",cursor:"pointer",letterSpacing:".05em"}} onMouseOver={e=>e.currentTarget.style.opacity=".65"} onMouseOut={e=>e.currentTarget.style.opacity="1"}>Voir tout →</button>
+            {/* FEATURED */}
+            <div className="sp" style={{ padding: "0 80px 40px" }}>
+              <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", marginBottom: "20px", flexWrap: "wrap", gap: "8px" }}>
+                <div>
+                  <div style={{ fontSize: "9px", letterSpacing: ".3em", color: "#3A4560", textTransform: "uppercase", marginBottom: "6px" }}>// projets phares</div>
+                  <p style={{ fontSize: "13px", color: "#5A6478" }}>Les projets qui ont le plus d'impact sur les communautés.</p>
+                </div>
+                <button onClick={() => go("projects")} style={{ fontSize: "11px", color: "#00D4FF", background: "none", border: "1px solid rgba(0,212,255,.2)", cursor: "pointer", padding: "6px 14px", transition: "all .2s" }} onMouseOver={e => { e.currentTarget.style.background = "rgba(0,212,255,.08)"; }} onMouseOut={e => { e.currentTarget.style.background = "none"; }}>Tous les projets →</button>
               </div>
-              <div className="grid3h" style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:"14px"}}>
-                {PROJECTS.filter(p=>p.rank==="S"||p.name==="Parlon!").slice(0,3).map((p,i)=>(
-                  <div key={p.name} className={`card-in-${i+1}`}
-                    style={{background:"rgba(12,12,24,.9)",border:"1px solid rgba(255,255,255,.06)",borderLeft:`3px solid ${p.color}`,position:"relative",overflow:"hidden",cursor:"default",transition:"all .3s cubic-bezier(.4,0,.2,1)",backdropFilter:"blur(8px)"}}
-                    onMouseOver={e=>{ e.currentTarget.style.transform="translateY(-5px)"; e.currentTarget.style.boxShadow=`0 20px 50px ${p.color}18`; e.currentTarget.style.borderColor=`rgba(255,255,255,.1)`; }}
-                    onMouseOut={e=>{ e.currentTarget.style.transform="none"; e.currentTarget.style.boxShadow="none"; e.currentTarget.style.borderColor="rgba(255,255,255,.06)"; }}>
-                    <div style={{height:"3px",background:`linear-gradient(90deg,${p.color},${p.color}22)`}} />
-                    <div style={{padding:"18px 20px"}}>
-                      <div style={{position:"absolute",top:"18px",right:"16px",width:"26px",height:"26px",border:`1.5px solid ${RANK_COLORS[p.rank]}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:"12px",fontWeight:900,color:RANK_COLORS[p.rank],boxShadow:`0 0 10px ${RANK_COLORS[p.rank]}44`}}>{p.rank}</div>
-                      <h3 style={{fontSize:"15px",fontWeight:700,marginBottom:"6px",paddingRight:"34px",color:"#E2E8F0"}}>{p.name}</h3>
-                      <p style={{fontSize:"11px",color:"#8892A4",lineHeight:1.65,marginBottom:"12px"}}>{p.desc}</p>
-                      <div style={{display:"flex",flexWrap:"wrap",gap:"4px",marginBottom:"10px"}}>
-                        {p.tags.map(t=>(<span key={t} style={{fontSize:"9px",padding:"2px 7px",background:`${p.color}12`,color:p.color,border:`1px solid ${p.color}28`}}>{t}</span>))}
-                      </div>
-                      {p.link&&<a href={p.link} target="_blank" rel="noreferrer" style={{fontSize:"11px",color:"#00D4FF",textDecoration:"none"}}>Voir le projet →</a>}
+              <div className="g3" style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: "16px" }}>
+                {PROJECTS.filter(p => p.rank === "S" || p.name === "Parlon!").slice(0, 3).map((p, i) => (
+                  <TiltCard key={p.name} className={`ci${i + 1}`} style={{ background: "rgba(10,10,22,.92)", border: "1px solid rgba(255,255,255,.07)", overflow: "hidden" }}>
+                    <div style={{ height: "70px", background: `linear-gradient(135deg,${p.color}25,rgba(10,10,22,.7))`, borderBottom: `1px solid ${p.color}22`, display: "flex", alignItems: "flex-end", justifyContent: "space-between", padding: "0 20px 12px", position: "relative", overflow: "hidden" }}>
+                      <div style={{ position: "absolute", top: "-20px", right: "-20px", width: "90px", height: "90px", borderRadius: "50%", background: `radial-gradient(circle,${p.color}30,transparent 70%)` }} />
+                      <div><div style={{ fontSize: "9px", color: `${p.color}aa`, letterSpacing: ".15em", marginBottom: "2px" }}>{p.year}</div><h3 style={{ fontSize: "16px", fontWeight: 800, color: "#E2E8F0" }}>{p.name}</h3></div>
+                      <div style={{ width: "30px", height: "30px", border: `2px solid ${RANK_COLORS[p.rank]}`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "14px", fontWeight: 900, color: RANK_COLORS[p.rank], boxShadow: `0 0 14px ${RANK_COLORS[p.rank]}55` }}>{p.rank}</div>
                     </div>
-                  </div>
+                    <div style={{ padding: "16px 20px" }}>
+                      <p style={{ fontSize: "11px", color: "#5A6478", lineHeight: 1.7, marginBottom: "12px" }}>{p.short}</p>
+                      <div style={{ display: "flex", flexWrap: "wrap", gap: "4px", marginBottom: "12px" }}>
+                        {p.tags.map(t => <span key={t} style={{ fontSize: "9px", padding: "2px 7px", background: `${p.color}12`, color: p.color, border: `1px solid ${p.color}28` }}>{t}</span>)}
+                      </div>
+                      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                          <div style={{ width: "5px", height: "5px", borderRadius: "50%", background: "#10B981", boxShadow: "0 0 5px #10B981" }} />
+                          <span style={{ fontSize: "9px", color: "#10B981", letterSpacing: ".12em" }}>LIVE · {p.users}</span>
+                        </div>
+                        {p.link && <a href={p.link} target="_blank" rel="noreferrer" style={{ fontSize: "10px", color: "#00D4FF", textDecoration: "none" }}>Voir →</a>}
+                      </div>
+                    </div>
+                  </TiltCard>
                 ))}
               </div>
             </div>
 
             {/* STACK */}
-            <div className="sp" style={{padding:"0 80px 36px"}}>
-              <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:"12px"}}>
-                <div style={{fontSize:"9px",letterSpacing:".3em",color:"#3A4560",textTransform:"uppercase"}}>// stack technique</div>
-                <button onClick={()=>go("skills")} style={{fontSize:"11px",color:"#00D4FF",background:"none",border:"none",cursor:"pointer"}} onMouseOver={e=>e.currentTarget.style.opacity=".65"} onMouseOut={e=>e.currentTarget.style.opacity="1"}>Détails →</button>
+            <div className="sp" style={{ padding: "0 80px 36px" }}>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "12px" }}>
+                <div style={{ fontSize: "9px", letterSpacing: ".3em", color: "#3A4560", textTransform: "uppercase" }}>// stack technique</div>
+                <button onClick={() => go("skills")} style={{ fontSize: "11px", color: "#00D4FF", background: "none", border: "none", cursor: "pointer" }}>Détails →</button>
               </div>
-              <div className="grid7" style={{display:"grid",gridTemplateColumns:"repeat(7,1fr)",gap:"10px"}}>
-                {SKILLS.map(sk=>(
-                  <div key={sk.name} style={{padding:"14px 10px",background:"rgba(12,12,24,.9)",border:`1px solid ${sk.color}20`,display:"flex",flexDirection:"column",alignItems:"center",gap:"7px",cursor:"default",transition:"all .25s",backdropFilter:"blur(6px)"}}
-                    onMouseOver={e=>{ e.currentTarget.style.borderColor=sk.color+"55"; e.currentTarget.style.background=`${sk.color}09`; e.currentTarget.style.transform="translateY(-3px)"; e.currentTarget.style.boxShadow=`0 8px 20px ${sk.color}18`; }}
-                    onMouseOut={e=>{ e.currentTarget.style.borderColor=sk.color+"20"; e.currentTarget.style.background="rgba(12,12,24,.9)"; e.currentTarget.style.transform="none"; e.currentTarget.style.boxShadow="none"; }}>
-                    <div style={{width:"34px",height:"34px",background:`${sk.color}18`,border:`1px solid ${sk.color}40`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:"9px",fontWeight:800,color:sk.color}}>{sk.icon}</div>
-                    <div style={{fontSize:"9px",color:"#8892A4",textAlign:"center",lineHeight:1.2}}>{sk.name}</div>
-                    <div style={{fontSize:"10px",fontWeight:700,color:sk.color}}>{sk.level}%</div>
+              <div className="g7" style={{ display: "grid", gridTemplateColumns: "repeat(7,1fr)", gap: "10px" }}>
+                {SKILLS.map(sk => (
+                  <div key={sk.name} style={{ padding: "14px 10px", background: "rgba(10,10,22,.9)", border: `1px solid ${sk.color}20`, display: "flex", flexDirection: "column", alignItems: "center", gap: "7px", cursor: "default", transition: "all .25s", backdropFilter: "blur(6px)" }}
+                    onMouseOver={e => { e.currentTarget.style.borderColor = sk.color + "55"; e.currentTarget.style.background = `${sk.color}09`; e.currentTarget.style.transform = "translateY(-4px) scale(1.03)"; e.currentTarget.style.boxShadow = `0 10px 24px ${sk.color}20`; }}
+                    onMouseOut={e => { e.currentTarget.style.borderColor = sk.color + "20"; e.currentTarget.style.background = "rgba(10,10,22,.9)"; e.currentTarget.style.transform = "none"; e.currentTarget.style.boxShadow = "none"; }}>
+                    <div style={{ width: "34px", height: "34px", background: `${sk.color}18`, border: `1px solid ${sk.color}40`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "9px", fontWeight: 800, color: sk.color }}>{sk.icon}</div>
+                    <div style={{ fontSize: "9px", color: "#8892A4", textAlign: "center", lineHeight: 1.2 }}>{sk.name}</div>
+                    <div style={{ fontSize: "10px", fontWeight: 700, color: sk.color }}>{sk.level}%</div>
                   </div>
                 ))}
               </div>
             </div>
 
-            {/* TICKER */}
-            <div style={{borderTop:"1px solid rgba(255,255,255,.04)",borderBottom:"1px solid rgba(255,255,255,.04)",padding:"13px 0",background:"rgba(8,8,18,.8)",backdropFilter:"blur(12px)"}}>
+            <div style={{ borderTop: "1px solid rgba(255,255,255,.04)", borderBottom: "1px solid rgba(255,255,255,.04)", padding: "13px 0", background: "rgba(8,8,18,.8)" }}>
               <div className="tk"><div className="ti">
-                {[...TICKER,...TICKER].map((item,i)=>(
-                  <span key={i} style={{fontSize:"10px",letterSpacing:".2em",textTransform:"uppercase",color:i%3===0?"#00D4FF":i%3===1?"#FF6B35":"#1E1E32",padding:"0 22px",whiteSpace:"nowrap"}}>
-                    {item}<span style={{color:"#101020",marginLeft:"22px"}}>◆</span>
+                {[...TICKER, ...TICKER].map((item, i) => (
+                  <span key={i} style={{ fontSize: "10px", letterSpacing: ".2em", textTransform: "uppercase", color: i % 3 === 0 ? "#00D4FF" : i % 3 === 1 ? "#FF6B35" : "#1C1C2E", padding: "0 22px", whiteSpace: "nowrap" }}>
+                    {item}<span style={{ color: "#0E0E1E", marginLeft: "22px" }}>◆</span>
                   </span>
                 ))}
               </div></div>
             </div>
-            <div className="quote-row sp" style={{padding:"22px 80px",display:"flex",alignItems:"center",justifyContent:"space-between",gap:"10px"}}>
-              <div style={{borderLeft:"2px solid rgba(0,212,255,.2)",paddingLeft:"14px"}}>
-                <p style={{fontSize:"12px",fontStyle:"italic",color:"#3A4560"}}>"Créer des bots stylés, fluides et intelligents, c'est mon métier."</p>
-                <span style={{fontSize:"10px",color:"#00D4FF",letterSpacing:".07em"}}>— ๖̶ζ͜͡Mrex</span>
+            <div className="qr sp" style={{ padding: "22px 80px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: "10px" }}>
+              <div style={{ borderLeft: "2px solid rgba(0,212,255,.2)", paddingLeft: "14px" }}>
+                <p style={{ fontSize: "12px", fontStyle: "italic", color: "#3A4560" }}>"Créer des bots stylés, fluides et intelligents, c'est mon métier."</p>
+                <span style={{ fontSize: "10px", color: "#00D4FF" }}>— ๖̶ζ͜͡Mrex</span>
               </div>
-              <span style={{fontSize:"10px",color:"#1A1A2C",letterSpacing:".1em",fontFamily:"monospace"}}>github.com/Mrexdev</span>
+              <a href="https://github.com/Mrexdev" target="_blank" rel="noreferrer" style={{ fontSize: "10px", color: "#1A1A2C", letterSpacing: ".1em", fontFamily: "monospace", textDecoration: "none" }}>github.com/Mrexdev</a>
             </div>
           </div>
         )}
 
-        {/* ══════ SKILLS ══════ */}
-        {active==="skills" && (
-          <div className="page-in">
-            {/* BANNER */}
-            <div className="banner-area" style={{position:"relative",overflow:"hidden",minHeight:"200px",padding:"50px 80px 40px",display:"flex",flexDirection:"column",justifyContent:"flex-end"}}>
-              {/* BG layers */}
-              <div style={{position:"absolute",inset:0,background:`url("data:image/svg+xml,${encodeURIComponent(circuitPattern)}") repeat`,backgroundSize:"80px 80px"}} />
-              <div style={{position:"absolute",inset:0,background:"linear-gradient(135deg,rgba(0,212,255,.12) 0%,rgba(5,5,14,.95) 60%,rgba(5,5,14,1) 100%)"}} />
-              <div style={{position:"absolute",inset:0,background:"linear-gradient(to bottom,rgba(5,5,14,.3) 0%,rgba(5,5,14,1) 100%)"}} />
-              {/* Big BG text */}
-              <div className="banner-bg-text" style={{position:"absolute",right:"-20px",top:"50%",transform:"translateY(-50%)",fontSize:"180px",fontWeight:900,letterSpacing:"-.05em",color:"#00D4FF",opacity:.05,pointerEvents:"none",lineHeight:1,userSelect:"none"}}>SKILLS</div>
-              {/* Glow orb */}
-              <div style={{position:"absolute",top:"-30%",left:"20%",width:"400px",height:"400px",borderRadius:"50%",background:"radial-gradient(circle,rgba(0,212,255,.12) 0%,transparent 70%)",pointerEvents:"none"}} />
-              {/* Content */}
-              <div style={{position:"relative",zIndex:1}}>
-                <div style={{display:"inline-flex",alignItems:"center",gap:"8px",padding:"4px 14px",border:"1px solid rgba(0,212,255,.3)",marginBottom:"12px",background:"rgba(0,212,255,.06)"}}>
-                  <div style={{width:"6px",height:"6px",borderRadius:"50%",background:"#00D4FF",animation:"pulse 2s ease-in-out infinite"}} />
-                  <span style={{fontSize:"9px",letterSpacing:".35em",color:"#00D4FF",textTransform:"uppercase"}}>skills.exe — chargement</span>
+        {/* ════════ SKILLS ════════ */}
+        {active === "skills" && (
+          <div className="pi">
+            <div className="barea" style={{ position: "relative", overflow: "hidden", minHeight: "220px", padding: "50px 80px 44px", display: "flex", flexDirection: "column", justifyContent: "flex-end" }}>
+              <div style={{ position: "absolute", inset: 0, background: `url("data:image/svg+xml,${encodeURIComponent(circuitSvg)}") repeat`, backgroundSize: "80px 80px", ...paralaxStyleSlow }} />
+              <div style={{ position: "absolute", inset: 0, background: "linear-gradient(135deg,rgba(0,212,255,.12) 0%,rgba(5,5,14,.95) 65%,rgba(5,5,14,1) 100%)" }} />
+              <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom,rgba(5,5,14,.2) 0%,rgba(5,5,14,1) 100%)" }} />
+              <div className="bbt" style={{ position: "absolute", right: "-10px", top: "50%", transform: "translateY(-50%)", fontSize: "180px", fontWeight: 900, color: "#00D4FF", opacity: .05, pointerEvents: "none", lineHeight: 1, userSelect: "none" }}>SKILLS</div>
+              <div style={{ position: "absolute", top: "-30%", left: "20%", width: "400px", height: "400px", borderRadius: "50%", background: "radial-gradient(circle,rgba(0,212,255,.1) 0%,transparent 70%)", ...paralaxStyle }} />
+              <div style={{ position: "relative", zIndex: 1 }}>
+                <div style={{ display: "inline-flex", alignItems: "center", gap: "8px", padding: "4px 14px", border: "1px solid rgba(0,212,255,.3)", marginBottom: "10px", background: "rgba(0,212,255,.06)" }}>
+                  <div style={{ width: "6px", height: "6px", borderRadius: "50%", background: "#00D4FF", animation: "pulse 2s ease-in-out infinite" }} />
+                  <span style={{ fontSize: "9px", letterSpacing: ".35em", color: "#00D4FF", textTransform: "uppercase" }}>skills.exe — analyse en cours</span>
                 </div>
-                <h2 className="sec-title fade-up" style={{fontSize:"62px",fontWeight:900,lineHeight:.9,color:"#E2E8F0"}}>Compétences</h2>
-                <div style={{width:"60px",height:"2px",background:"linear-gradient(90deg,#00D4FF,transparent)",marginTop:"14px"}} />
+                <h2 className="st fu" style={{ fontSize: "62px", fontWeight: 900, lineHeight: .9, color: "#E2E8F0", marginBottom: "10px" }}>Compétences</h2>
+                <p style={{ fontSize: "14px", color: "#5A6478", maxWidth: "500px" }}>7 technologies maîtrisées, des centaines de projets construits. Chaque outil a été choisi pour sa puissance et sa pertinence.</p>
+                <div style={{ width: "60px", height: "2px", background: "linear-gradient(90deg,#00D4FF,transparent)", marginTop: "14px" }} />
               </div>
             </div>
 
-            {/* SKILL CARDS */}
-            <div className="sp" style={{padding:"40px 80px"}}>
-              <div className="skills-grid" style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:"16px",marginBottom:"40px"}}>
-                {SKILLS.map((sk,i)=>(
-                  <div key={sk.name} className={`card-in-${Math.min(i+1,6)}`}
-                    style={{padding:"24px",background:"rgba(10,10,22,.92)",border:"1px solid rgba(255,255,255,.07)",borderTop:`2px solid ${sk.color}`,position:"relative",overflow:"hidden",cursor:"default",transition:"all .3s cubic-bezier(.4,0,.2,1)",backdropFilter:"blur(10px)"}}
-                    onMouseOver={e=>{ e.currentTarget.style.background=`linear-gradient(135deg,${sk.color}12,rgba(10,10,22,.96))`; e.currentTarget.style.transform="translateY(-5px)"; e.currentTarget.style.boxShadow=`0 16px 40px ${sk.color}22`; e.currentTarget.style.borderColor=sk.color+"55"; }}
-                    onMouseOut={e=>{ e.currentTarget.style.background="rgba(10,10,22,.92)"; e.currentTarget.style.transform="none"; e.currentTarget.style.boxShadow="none"; e.currentTarget.style.borderColor="rgba(255,255,255,.07)"; }}>
-                    {/* shimmer on hover */}
-                    <div style={{position:"absolute",top:0,left:"-100%",width:"60%",height:"100%",background:"linear-gradient(90deg,transparent,rgba(255,255,255,.04),transparent)",pointerEvents:"none"}} />
-                    <div style={{position:"absolute",right:"-6px",bottom:"-14px",fontSize:"76px",fontWeight:900,color:sk.color,opacity:.04,lineHeight:1,pointerEvents:"none"}}>{sk.level}</div>
-                    <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:"14px"}}>
-                      <div style={{width:"40px",height:"40px",background:`${sk.color}18`,border:`1px solid ${sk.color}45`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:"10px",fontWeight:800,color:sk.color}}>{sk.icon}</div>
-                      <div style={{fontSize:"22px",fontWeight:800,color:sk.color,fontVariantNumeric:"tabular-nums"}}>{counters[sk.name]||0}%</div>
+            <div className="sp" style={{ padding: "44px 80px" }}>
+              {/* Intro text */}
+              <div style={{ marginBottom: "40px", display: "grid", gridTemplateColumns: "1fr 1fr", gap: "40px" }}>
+                <div>
+                  <h3 style={{ fontSize: "18px", fontWeight: 700, color: "#E2E8F0", marginBottom: "10px" }}>Mon approche technique</h3>
+                  <p style={{ fontSize: "13px", color: "#5A6478", lineHeight: 1.85 }}>Je crois que la maîtrise technique est le socle de tout projet réussi. Chaque technologie que j'utilise, je l'ai apprise en la pratiquant sur de vrais projets — pas juste des tutoriels. Du bot Discord avec 10 000 membres à l'interface FiveM vue par des milliers de joueurs.</p>
+                </div>
+                <div>
+                  <h3 style={{ fontSize: "18px", fontWeight: 700, color: "#E2E8F0", marginBottom: "10px" }}>Spécialité Discord & RP</h3>
+                  <p style={{ fontSize: "13px", color: "#5A6478", lineHeight: 1.85 }}>Discord.js et Lua/FiveM sont mes spécialités absolues. J'ai construit des systèmes de sécurité qui protègent des communautés de milliers de membres, des scripts RP qui créent des expériences de jeu uniques. C'est mon terrain de jeu naturel.</p>
+                </div>
+              </div>
+
+              <div className="sg" style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: "14px", marginBottom: "40px" }}>
+                {SKILLS.map((sk, i) => (
+                  <TiltCard key={sk.name} className={`ci${Math.min(i + 1, 7)}`} style={{ padding: "22px", background: "rgba(10,10,22,.92)", border: "1px solid rgba(255,255,255,.07)", borderTop: `2px solid ${sk.color}` }}>
+                    <div style={{ position: "absolute", right: "-6px", bottom: "-12px", fontSize: "74px", fontWeight: 900, color: sk.color, opacity: .04, lineHeight: 1, pointerEvents: "none" }}>{sk.level}</div>
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "12px" }}>
+                      <div style={{ width: "38px", height: "38px", background: `${sk.color}18`, border: `1px solid ${sk.color}45`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "10px", fontWeight: 800, color: sk.color }}>{sk.icon}</div>
+                      <div style={{ fontSize: "20px", fontWeight: 800, color: sk.color, animation: "countUp .4s ease both" }}>{counters[sk.name] || 0}%</div>
                     </div>
-                    <div style={{fontSize:"13px",fontWeight:600,color:"#E2E8F0",marginBottom:"3px"}}>{sk.name}</div>
-                    <div style={{fontSize:"10px",color:"#3A4560",marginBottom:"14px"}}>{sk.desc}</div>
-                    <div style={{height:"3px",background:"rgba(255,255,255,.06)",borderRadius:"2px",overflow:"hidden"}}>
-                      <div className="skill-fill" style={{height:"100%",width:skillsAnim?`${sk.level}%`:"0%",background:`linear-gradient(90deg,${sk.color},${sk.color}77)`,transition:`width ${.9+i*.1}s cubic-bezier(.4,0,.2,1)`,boxShadow:`0 0 8px ${sk.color}55`}} />
+                    <div style={{ fontSize: "13px", fontWeight: 600, color: "#E2E8F0", marginBottom: "2px" }}>{sk.name}</div>
+                    <div style={{ fontSize: "10px", color: "#3A4560", marginBottom: "14px" }}>{sk.desc}</div>
+                    <div style={{ height: "3px", background: "rgba(255,255,255,.06)", borderRadius: "2px", overflow: "hidden" }}>
+                      <div className="sf" style={{ height: "100%", width: skillsAnim ? `${sk.level}%` : "0%", background: `linear-gradient(90deg,${sk.color},${sk.color}77)`, transition: `width ${.9 + i * .1}s cubic-bezier(.4,0,.2,1)`, boxShadow: `0 0 8px ${sk.color}55` }} />
                     </div>
-                  </div>
+                  </TiltCard>
                 ))}
               </div>
 
-              {/* CATEGORIES */}
-              <div className="cat-grid" style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:"16px"}}>
+              <div className="cg" style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: "16px" }}>
                 {[
-                  {title:"Backend",items:["Node.js","Express.js","MySQL","Discord.js","REST APIs"],color:"#00D4FF",icon:"⚙️"},
-                  {title:"Frontend",items:["React","HTML5","CSS3","Responsive","Animations"],color:"#8B5CF6",icon:"🎨"},
-                  {title:"Spécialisé",items:["Lua/FiveM","Discord API","Bots RP","GTA Systems"],color:"#FF6B35",icon:"🎮"},
-                ].map((cat,i)=>(
-                  <div key={cat.title} className={`card-in-${i+1}`}
-                    style={{padding:"28px",background:"rgba(10,10,22,.92)",border:"1px solid rgba(255,255,255,.07)",borderLeft:`3px solid ${cat.color}`,position:"relative",overflow:"hidden",backdropFilter:"blur(10px)",cursor:"default",transition:"all .3s"}}
-                    onMouseOver={e=>{ e.currentTarget.style.background=`linear-gradient(135deg,${cat.color}08,rgba(10,10,22,.96))`; e.currentTarget.style.transform="translateY(-4px)"; }}
-                    onMouseOut={e=>{ e.currentTarget.style.background="rgba(10,10,22,.92)"; e.currentTarget.style.transform="none"; }}>
-                    <div style={{position:"absolute",top:"-18px",right:"-14px",fontSize:"88px",opacity:.04,pointerEvents:"none"}}>{cat.icon}</div>
-                    <div style={{display:"flex",alignItems:"center",gap:"8px",marginBottom:"4px"}}>
-                      <span style={{fontSize:"16px"}}>{cat.icon}</span>
-                      <span style={{fontSize:"10px",letterSpacing:".25em",color:cat.color,textTransform:"uppercase",fontWeight:700}}>{cat.title}</span>
+                  { title: "Backend", desc: "Le moteur de mes projets. Node.js pour les serveurs, MySQL pour la persistance, Discord.js pour tout ce qui touche à l'API Discord. Des architectures modulaires et robustes.", items: ["Node.js", "Express.js", "MySQL", "Discord.js", "REST APIs"], color: "#00D4FF", icon: "⚙️" },
+                  { title: "Frontend", desc: "Les interfaces que les utilisateurs voient et vivent. React pour les applications dynamiques, HTML/CSS pour des designs qui impressionnent sur tous les écrans.", items: ["React", "HTML5", "CSS3", "Responsive", "Animations"], color: "#8B5CF6", icon: "🎨" },
+                  { title: "Spécialisé", desc: "Ma différence. Lua pour FiveM, l'API Discord en profondeur, les systèmes RP complexes. Des compétences rares que peu de développeurs maîtrisent.", items: ["Lua/FiveM", "Discord API", "Bots RP", "GTA Systems"], color: "#FF6B35", icon: "🎮" },
+                ].map((cat, i) => (
+                  <TiltCard key={cat.title} className={`ci${i + 1}`} style={{ padding: "28px", background: "rgba(10,10,22,.92)", border: "1px solid rgba(255,255,255,.07)", borderLeft: `3px solid ${cat.color}` }}>
+                    <div style={{ position: "absolute", top: "-18px", right: "-14px", fontSize: "88px", opacity: .04, pointerEvents: "none" }}>{cat.icon}</div>
+                    <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "4px" }}>
+                      <span style={{ fontSize: "16px" }}>{cat.icon}</span>
+                      <span style={{ fontSize: "10px", letterSpacing: ".25em", color: cat.color, textTransform: "uppercase", fontWeight: 700 }}>{cat.title}</span>
                     </div>
-                    <div style={{width:"40px",height:"2px",background:`linear-gradient(90deg,${cat.color},transparent)`,marginBottom:"18px"}} />
-                    <div style={{display:"flex",flexWrap:"wrap",gap:"7px"}}>
-                      {cat.items.map(item=>(<span key={item} style={{fontSize:"11px",padding:"5px 11px",background:`${cat.color}10`,color:cat.color,border:`1px solid ${cat.color}28`,letterSpacing:".03em"}}>{item}</span>))}
+                    <div style={{ width: "40px", height: "2px", background: `linear-gradient(90deg,${cat.color},transparent)`, marginBottom: "12px" }} />
+                    <p style={{ fontSize: "12px", color: "#5A6478", lineHeight: 1.7, marginBottom: "16px" }}>{cat.desc}</p>
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: "7px" }}>
+                      {cat.items.map(item => <span key={item} style={{ fontSize: "11px", padding: "4px 10px", background: `${cat.color}10`, color: cat.color, border: `1px solid ${cat.color}28` }}>{item}</span>)}
                     </div>
-                  </div>
+                  </TiltCard>
                 ))}
               </div>
             </div>
           </div>
         )}
 
-        {/* ══════ PROJECTS ══════ */}
-        {active==="projects" && (
-          <div className="page-in">
-            {/* BANNER */}
-            <div className="banner-area" style={{position:"relative",overflow:"hidden",minHeight:"200px",padding:"50px 80px 40px",display:"flex",flexDirection:"column",justifyContent:"flex-end"}}>
-              <div style={{position:"absolute",inset:0,background:`url("data:image/svg+xml,${encodeURIComponent(hexPattern)}") repeat`,backgroundSize:"60px 52px"}} />
-              <div style={{position:"absolute",inset:0,background:"linear-gradient(135deg,rgba(255,107,53,.1) 0%,rgba(5,5,14,.95) 65%,rgba(5,5,14,1) 100%)"}} />
-              <div style={{position:"absolute",inset:0,background:"linear-gradient(to bottom,rgba(5,5,14,.2) 0%,rgba(5,5,14,1) 100%)"}} />
-              <div className="banner-bg-text" style={{position:"absolute",right:"-10px",top:"50%",transform:"translateY(-50%)",fontSize:"160px",fontWeight:900,letterSpacing:"-.05em",color:"#FF6B35",opacity:.05,pointerEvents:"none",lineHeight:1,userSelect:"none"}}>PROJECTS</div>
-              <div style={{position:"absolute",top:"-20%",right:"30%",width:"400px",height:"400px",borderRadius:"50%",background:"radial-gradient(circle,rgba(255,107,53,.1) 0%,transparent 70%)",pointerEvents:"none"}} />
-              <div style={{position:"relative",zIndex:1}}>
-                <div style={{display:"inline-flex",alignItems:"center",gap:"8px",padding:"4px 14px",border:"1px solid rgba(255,107,53,.3)",marginBottom:"12px",background:"rgba(255,107,53,.06)"}}>
-                  <div style={{width:"6px",height:"6px",borderRadius:"50%",background:"#FF6B35",animation:"pulse 2s ease-in-out infinite"}} />
-                  <span style={{fontSize:"9px",letterSpacing:".35em",color:"#FF6B35",textTransform:"uppercase"}}>projects.log — {PROJECTS.length} entrées</span>
+        {/* ════════ PROJECTS ════════ */}
+        {active === "projects" && (
+          <div className="pi">
+            <div className="barea" style={{ position: "relative", overflow: "hidden", minHeight: "220px", padding: "50px 80px 44px", display: "flex", flexDirection: "column", justifyContent: "flex-end" }}>
+              <div style={{ position: "absolute", inset: 0, background: `url("data:image/svg+xml,${encodeURIComponent(hexSvg)}") repeat`, backgroundSize: "60px 52px", ...paralaxStyleSlow }} />
+              <div style={{ position: "absolute", inset: 0, background: "linear-gradient(135deg,rgba(255,107,53,.12) 0%,rgba(5,5,14,.95) 65%,rgba(5,5,14,1) 100%)" }} />
+              <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom,rgba(5,5,14,.2) 0%,rgba(5,5,14,1) 100%)" }} />
+              <div className="bbt" style={{ position: "absolute", right: "-10px", top: "50%", transform: "translateY(-50%)", fontSize: "155px", fontWeight: 900, color: "#FF6B35", opacity: .05, pointerEvents: "none", lineHeight: 1, userSelect: "none" }}>PROJECTS</div>
+              <div style={{ position: "absolute", top: "-20%", right: "25%", width: "400px", height: "400px", borderRadius: "50%", background: "radial-gradient(circle,rgba(255,107,53,.1) 0%,transparent 70%)", ...paralaxStyle }} />
+              <div style={{ position: "relative", zIndex: 1 }}>
+                <div style={{ display: "inline-flex", alignItems: "center", gap: "8px", padding: "4px 14px", border: "1px solid rgba(255,107,53,.3)", marginBottom: "10px", background: "rgba(255,107,53,.06)" }}>
+                  <div style={{ width: "6px", height: "6px", borderRadius: "50%", background: "#FF6B35", animation: "pulse 2s ease-in-out infinite" }} />
+                  <span style={{ fontSize: "9px", letterSpacing: ".35em", color: "#FF6B35", textTransform: "uppercase" }}>projects.log — {PROJECTS.length} projets actifs</span>
                 </div>
-                <h2 className="sec-title fade-up" style={{fontSize:"62px",fontWeight:900,lineHeight:.9,color:"#E2E8F0"}}>Projets</h2>
-                <div style={{width:"60px",height:"2px",background:"linear-gradient(90deg,#FF6B35,transparent)",marginTop:"14px"}} />
+                <h2 className="st fu" style={{ fontSize: "62px", fontWeight: 900, lineHeight: .9, color: "#E2E8F0", marginBottom: "10px" }}>Projets</h2>
+                <p style={{ fontSize: "14px", color: "#5A6478", maxWidth: "520px" }}>Chaque projet raconte une histoire — un problème rencontré, une solution construite, une communauté améliorée.</p>
+                <div style={{ width: "60px", height: "2px", background: "linear-gradient(90deg,#FF6B35,transparent)", marginTop: "14px" }} />
               </div>
             </div>
 
-            <div className="sp" style={{padding:"40px 80px"}}>
-              <div className="grid3" style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(300px,1fr))",gap:"20px"}}>
-                {PROJECTS.map((p,i)=>(
-                  <div key={p.name} className={`card-in-${Math.min(i+1,6)}`}
-                    style={{background:"rgba(10,10,22,.92)",border:"1px solid rgba(255,255,255,.07)",overflow:"hidden",cursor:"default",transition:"all .35s cubic-bezier(.4,0,.2,1)",backdropFilter:"blur(10px)",position:"relative"}}
-                    onMouseOver={e=>{ e.currentTarget.style.transform="translateY(-6px)"; e.currentTarget.style.borderColor=p.color+"44"; e.currentTarget.style.boxShadow=`0 24px 60px ${p.color}18,0 0 0 1px ${p.color}22`; }}
-                    onMouseOut={e=>{ e.currentTarget.style.transform="none"; e.currentTarget.style.borderColor="rgba(255,255,255,.07)"; e.currentTarget.style.boxShadow="none"; }}>
-                    {/* Header gradient */}
-                    <div style={{height:"80px",background:`linear-gradient(135deg,${p.color}22 0%,rgba(10,10,22,.6) 100%)`,borderBottom:`1px solid ${p.color}22`,display:"flex",alignItems:"flex-end",justifyContent:"space-between",padding:"0 22px 12px",position:"relative",overflow:"hidden"}}>
-                      <div style={{position:"absolute",top:"-20px",right:"-20px",width:"100px",height:"100px",borderRadius:"50%",background:`radial-gradient(circle,${p.color}30,transparent 70%)`}} />
-                      <div>
-                        <div style={{fontSize:"9px",letterSpacing:".18em",color:`${p.color}bb`,marginBottom:"2px"}}>{p.year}</div>
-                        <h3 style={{fontSize:"18px",fontWeight:800,color:"#E2E8F0"}}>{p.name}</h3>
-                      </div>
-                      <div style={{width:"38px",height:"38px",border:`2px solid ${RANK_COLORS[p.rank]}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:"16px",fontWeight:900,color:RANK_COLORS[p.rank],boxShadow:`0 0 16px ${RANK_COLORS[p.rank]}55`,background:`${RANK_COLORS[p.rank]}10`,flexShrink:0}}>{p.rank}</div>
+            <div className="sp" style={{ padding: "44px 80px" }}>
+              <div className="g3" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(320px,1fr))", gap: "22px" }}>
+                {PROJECTS.map((p, i) => (
+                  <TiltCard key={p.name} className={`ci${Math.min(i + 1, 6)}`} style={{ background: "rgba(10,10,22,.92)", border: "1px solid rgba(255,255,255,.07)", overflow: "hidden" }}
+                    onMouseOver={e => { e.currentTarget.style.boxShadow = `0 28px 60px ${p.color}1A`; }}
+                    onMouseOut={e => { e.currentTarget.style.boxShadow = "none"; }}>
+                    <div style={{ height: "90px", background: `linear-gradient(135deg,${p.color}28 0%,rgba(10,10,22,.8) 100%)`, borderBottom: `1px solid ${p.color}22`, display: "flex", alignItems: "flex-end", justifyContent: "space-between", padding: "0 24px 14px", position: "relative", overflow: "hidden" }}>
+                      <div style={{ position: "absolute", top: "-25px", right: "-25px", width: "110px", height: "110px", borderRadius: "50%", background: `radial-gradient(circle,${p.color}35,transparent 70%)` }} />
+                      <div style={{ position: "absolute", top: "12px", left: "24px", fontSize: "9px", color: `${p.color}88`, letterSpacing: ".18em" }}>{p.year} · {p.short}</div>
+                      <div><h3 style={{ fontSize: "20px", fontWeight: 800, color: "#E2E8F0" }}>{p.name}</h3></div>
+                      <div style={{ width: "38px", height: "38px", border: `2px solid ${RANK_COLORS[p.rank]}`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "16px", fontWeight: 900, color: RANK_COLORS[p.rank], boxShadow: `0 0 16px ${RANK_COLORS[p.rank]}55`, background: `${RANK_COLORS[p.rank]}10` }}>{p.rank}</div>
                     </div>
-                    <div style={{padding:"18px 22px"}}>
-                      <p style={{fontSize:"13px",color:"#8892A4",lineHeight:1.7,marginBottom:"16px"}}>{p.desc}</p>
-                      <div style={{display:"flex",flexWrap:"wrap",gap:"5px",marginBottom:"16px"}}>
-                        {p.tags.map(t=>(<span key={t} style={{fontSize:"9px",padding:"3px 9px",background:`${p.color}12`,color:p.color,border:`1px solid ${p.color}28`,letterSpacing:".03em"}}>{t}</span>))}
+                    <div style={{ padding: "20px 24px" }}>
+                      <p style={{ fontSize: "13px", color: "#5A6478", lineHeight: 1.75, marginBottom: "16px" }}>{p.desc}</p>
+                      <div style={{ display: "flex", flexWrap: "wrap", gap: "5px", marginBottom: "16px" }}>
+                        {p.tags.map(t => <span key={t} style={{ fontSize: "9px", padding: "3px 9px", background: `${p.color}12`, color: p.color, border: `1px solid ${p.color}28` }}>{t}</span>)}
                       </div>
-                      <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",borderTop:"1px solid rgba(255,255,255,.05)",paddingTop:"14px"}}>
-                        <div style={{display:"flex",alignItems:"center",gap:"7px"}}>
-                          <div style={{width:"6px",height:"6px",borderRadius:"50%",background:"#10B981",boxShadow:"0 0 6px #10B981"}} />
-                          <span style={{fontSize:"9px",letterSpacing:".15em",color:"#10B981",textTransform:"uppercase"}}>LIVE</span>
+                      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", borderTop: "1px solid rgba(255,255,255,.05)", paddingTop: "14px" }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: "7px" }}>
+                          <div style={{ width: "6px", height: "6px", borderRadius: "50%", background: "#10B981", boxShadow: "0 0 6px #10B981" }} />
+                          <span style={{ fontSize: "9px", color: "#10B981", letterSpacing: ".12em" }}>LIVE · {p.users} utilisateurs</span>
                         </div>
-                        {p.link&&<a href={p.link} target="_blank" rel="noreferrer" style={{fontSize:"11px",color:"#00D4FF",textDecoration:"none",padding:"5px 12px",border:"1px solid rgba(0,212,255,.2)",background:"rgba(0,212,255,.06)",transition:"all .2s"}} onMouseOver={e=>{ e.currentTarget.style.background="rgba(0,212,255,.15)"; }} onMouseOut={e=>{ e.currentTarget.style.background="rgba(0,212,255,.06)"; }}>Voir →</a>}
+                        {p.link && <a href={p.link} target="_blank" rel="noreferrer" style={{ fontSize: "11px", color: "#00D4FF", textDecoration: "none", padding: "5px 12px", border: "1px solid rgba(0,212,255,.2)", background: "rgba(0,212,255,.06)", transition: "all .2s" }} onMouseOver={e => { e.currentTarget.style.background = "rgba(0,212,255,.15)"; }} onMouseOut={e => { e.currentTarget.style.background = "rgba(0,212,255,.06)"; }}>Voir →</a>}
                       </div>
                     </div>
-                  </div>
+                  </TiltCard>
                 ))}
               </div>
             </div>
           </div>
         )}
 
-        {/* ══════ TIMELINE ══════ */}
-        {active==="timeline" && (
-          <div className="page-in">
-            {/* BANNER */}
-            <div className="banner-area" style={{position:"relative",overflow:"hidden",minHeight:"200px",padding:"50px 80px 40px",display:"flex",flexDirection:"column",justifyContent:"flex-end"}}>
-              <div style={{position:"absolute",inset:0,background:`url("data:image/svg+xml,${encodeURIComponent(diagPattern)}") repeat`,backgroundSize:"40px 40px"}} />
-              <div style={{position:"absolute",inset:0,background:"linear-gradient(135deg,rgba(139,92,246,.12) 0%,rgba(5,5,14,.95) 65%,rgba(5,5,14,1) 100%)"}} />
-              <div style={{position:"absolute",inset:0,background:"linear-gradient(to bottom,rgba(5,5,14,.2) 0%,rgba(5,5,14,1) 100%)"}} />
-              <div className="banner-bg-text" style={{position:"absolute",right:"-10px",top:"50%",transform:"translateY(-50%)",fontSize:"140px",fontWeight:900,letterSpacing:"-.04em",color:"#8B5CF6",opacity:.05,pointerEvents:"none",lineHeight:1,userSelect:"none"}}>TIMELINE</div>
-              <div style={{position:"absolute",top:"-30%",left:"25%",width:"500px",height:"500px",borderRadius:"50%",background:"radial-gradient(circle,rgba(139,92,246,.1) 0%,transparent 70%)",pointerEvents:"none"}} />
-              <div style={{position:"relative",zIndex:1}}>
-                <div style={{display:"inline-flex",alignItems:"center",gap:"8px",padding:"4px 14px",border:"1px solid rgba(139,92,246,.3)",marginBottom:"12px",background:"rgba(139,92,246,.06)"}}>
-                  <div style={{width:"6px",height:"6px",borderRadius:"50%",background:"#8B5CF6",animation:"pulse 2s ease-in-out infinite"}} />
-                  <span style={{fontSize:"9px",letterSpacing:".35em",color:"#8B5CF6",textTransform:"uppercase"}}>history.log — 2022 → now</span>
+        {/* ════════ TIMELINE ════════ */}
+        {active === "timeline" && (
+          <div className="pi">
+            <div className="barea" style={{ position: "relative", overflow: "hidden", minHeight: "220px", padding: "50px 80px 44px", display: "flex", flexDirection: "column", justifyContent: "flex-end" }}>
+              <div style={{ position: "absolute", inset: 0, background: `url("data:image/svg+xml,${encodeURIComponent(diagSvg)}") repeat`, backgroundSize: "40px 40px", ...paralaxStyleSlow }} />
+              <div style={{ position: "absolute", inset: 0, background: "linear-gradient(135deg,rgba(139,92,246,.12) 0%,rgba(5,5,14,.95) 65%,rgba(5,5,14,1) 100%)" }} />
+              <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom,rgba(5,5,14,.2) 0%,rgba(5,5,14,1) 100%)" }} />
+              <div className="bbt" style={{ position: "absolute", right: "-10px", top: "50%", transform: "translateY(-50%)", fontSize: "145px", fontWeight: 900, color: "#8B5CF6", opacity: .05, pointerEvents: "none", lineHeight: 1, userSelect: "none" }}>TIMELINE</div>
+              <div style={{ position: "relative", zIndex: 1 }}>
+                <div style={{ display: "inline-flex", alignItems: "center", gap: "8px", padding: "4px 14px", border: "1px solid rgba(139,92,246,.3)", marginBottom: "10px", background: "rgba(139,92,246,.06)" }}>
+                  <div style={{ width: "6px", height: "6px", borderRadius: "50%", background: "#8B5CF6", animation: "pulse 2s ease-in-out infinite" }} />
+                  <span style={{ fontSize: "9px", letterSpacing: ".35em", color: "#8B5CF6", textTransform: "uppercase" }}>history.log — 2022 → présent</span>
                 </div>
-                <h2 className="sec-title fade-up" style={{fontSize:"62px",fontWeight:900,lineHeight:.9,color:"#E2E8F0"}}>Timeline</h2>
-                <div style={{width:"60px",height:"2px",background:"linear-gradient(90deg,#8B5CF6,transparent)",marginTop:"14px"}} />
+                <h2 className="st fu" style={{ fontSize: "62px", fontWeight: 900, lineHeight: .9, color: "#E2E8F0", marginBottom: "10px" }}>Timeline</h2>
+                <p style={{ fontSize: "14px", color: "#5A6478", maxWidth: "500px" }}>3 ans de code, de bugs, d'apprentissage et de projets qui ont changé des communautés entières.</p>
+                <div style={{ width: "60px", height: "2px", background: "linear-gradient(90deg,#8B5CF6,transparent)", marginTop: "14px" }} />
               </div>
             </div>
 
-            <div className="sp" style={{padding:"40px 80px"}}>
-              <div className="tl-wrap" style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"24px",maxWidth:"950px"}}>
-                {TIMELINE.map((item,i)=>(
-                  <div key={item.year} className={`card-in-${i+1}`}
-                    style={{padding:"30px",background:"rgba(10,10,22,.92)",border:"1px solid rgba(255,255,255,.07)",borderLeft:`3px solid ${item.color}`,position:"relative",overflow:"hidden",backdropFilter:"blur(10px)",cursor:"default",transition:"all .3s cubic-bezier(.4,0,.2,1)"}}
-                    onMouseOver={e=>{ e.currentTarget.style.transform="translateY(-5px)"; e.currentTarget.style.boxShadow=`0 20px 50px ${item.color}20`; e.currentTarget.style.background=`linear-gradient(135deg,${item.color}08,rgba(10,10,22,.95))`; }}
-                    onMouseOut={e=>{ e.currentTarget.style.transform="none"; e.currentTarget.style.boxShadow="none"; e.currentTarget.style.background="rgba(10,10,22,.92)"; }}>
-                    <div style={{position:"absolute",right:"-6px",bottom:"-16px",fontSize:"88px",fontWeight:900,color:item.color,opacity:.04,lineHeight:1,pointerEvents:"none"}}>{item.year}</div>
-                    <div style={{position:"absolute",top:"18px",right:"18px",width:"36px",height:"36px",border:`1px solid ${item.color}33`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:"17px",background:`${item.color}08`}}>{item.icon}</div>
-                    <div style={{marginBottom:"18px"}}>
-                      <div style={{fontSize:"9px",letterSpacing:".22em",color:item.color,textTransform:"uppercase",fontWeight:700,marginBottom:"3px"}}>{item.year}</div>
-                      <h3 style={{fontSize:"18px",fontWeight:700,color:"#E2E8F0",paddingRight:"44px"}}>{item.title}</h3>
+            <div className="sp" style={{ padding: "44px 80px" }}>
+              <div className="tg" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "22px", maxWidth: "960px" }}>
+                {TIMELINE.map((item, i) => (
+                  <TiltCard key={item.year} className={`ci${i + 1}`} style={{ padding: "32px", background: "rgba(10,10,22,.92)", border: "1px solid rgba(255,255,255,.07)", borderLeft: `3px solid ${item.color}`, overflow: "hidden" }}>
+                    <div style={{ position: "absolute", right: "-6px", bottom: "-14px", fontSize: "90px", fontWeight: 900, color: item.color, opacity: .04, lineHeight: 1, pointerEvents: "none" }}>{item.year}</div>
+                    <div style={{ position: "absolute", top: "20px", right: "20px", width: "40px", height: "40px", border: `1px solid ${item.color}33`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "18px", background: `${item.color}08` }}>{item.icon}</div>
+                    <div style={{ marginBottom: "16px" }}>
+                      <div style={{ fontSize: "9px", letterSpacing: ".22em", color: item.color, textTransform: "uppercase", fontWeight: 700, marginBottom: "2px" }}>{item.year}</div>
+                      <h3 style={{ fontSize: "20px", fontWeight: 800, color: "#E2E8F0", paddingRight: "48px", lineHeight: 1.2 }}>{item.title}</h3>
+                      <div style={{ fontSize: "12px", color: `${item.color}99`, marginTop: "3px" }}>{item.subtitle}</div>
                     </div>
-                    <div style={{width:"100%",height:"1px",background:`linear-gradient(90deg,${item.color}55,transparent)`,marginBottom:"14px"}} />
-                    <p style={{fontSize:"13px",color:"#8892A4",lineHeight:1.75}}>{item.desc}</p>
-                    {/* Year badge */}
-                    <div style={{display:"inline-flex",alignItems:"center",gap:"6px",marginTop:"16px",padding:"4px 12px",background:`${item.color}12`,border:`1px solid ${item.color}28`}}>
-                      <div style={{width:"4px",height:"4px",borderRadius:"50%",background:item.color}} />
-                      <span style={{fontSize:"9px",color:item.color,letterSpacing:".1em"}}>{item.year}</span>
+                    <div style={{ width: "100%", height: "1px", background: `linear-gradient(90deg,${item.color}55,transparent)`, marginBottom: "16px" }} />
+                    <p style={{ fontSize: "13px", color: "#5A6478", lineHeight: 1.8, marginBottom: "18px" }}>{item.desc}</p>
+                    <div style={{ display: "inline-flex", alignItems: "center", gap: "6px", padding: "5px 12px", background: `${item.color}10`, border: `1px solid ${item.color}28` }}>
+                      <div style={{ width: "4px", height: "4px", borderRadius: "50%", background: item.color }} />
+                      <span style={{ fontSize: "9px", color: item.color, letterSpacing: ".08em" }}>{item.detail}</span>
                     </div>
-                  </div>
+                  </TiltCard>
                 ))}
                 {/* Future */}
-                <div style={{padding:"30px",background:"rgba(10,10,22,.6)",border:"1px dashed rgba(255,255,255,.07)",backdropFilter:"blur(10px)",gridColumn:"span 2",cursor:"default",animation:"cardIn .55s .45s ease both",transition:"all .3s"}}
-                  onMouseOver={e=>{ e.currentTarget.style.background="rgba(14,14,26,.85)"; }}
-                  onMouseOut={e=>{ e.currentTarget.style.background="rgba(10,10,22,.6)"; }}>
-                  <div style={{display:"flex",alignItems:"center",gap:"16px"}}>
-                    <div style={{width:"50px",height:"50px",border:"1.5px dashed rgba(255,255,255,.1)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:"20px",flexShrink:0}}>✨</div>
-                    <div>
-                      <div style={{fontSize:"9px",letterSpacing:".22em",color:"#3A4560",textTransform:"uppercase",fontWeight:700}}>En cours — 2025+</div>
-                      <h3 style={{fontSize:"18px",fontWeight:700,color:"#3A4560",marginBottom:"5px"}}>La suite...</h3>
-                      <p style={{fontSize:"13px",color:"#3A4560",lineHeight:1.7}}>IA conversationnelle, détection comportementale, systèmes de sauvegarde intelligents.</p>
+                <TiltCard className="ci5" style={{ padding: "30px", background: "rgba(10,10,22,.6)", border: "1px dashed rgba(255,255,255,.07)", gridColumn: "span 2", overflow: "hidden" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: "20px" }}>
+                    <div style={{ width: "52px", height: "52px", border: "1.5px dashed rgba(255,255,255,.1)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "22px", flexShrink: 0 }}>✨</div>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontSize: "9px", letterSpacing: ".22em", color: "#3A4560", textTransform: "uppercase", fontWeight: 700, marginBottom: "4px" }}>En cours — 2025 et au-delà</div>
+                      <h3 style={{ fontSize: "18px", fontWeight: 700, color: "#3A4560", marginBottom: "8px" }}>L'intelligence au service du code</h3>
+                      <p style={{ fontSize: "13px", color: "#3A4560", lineHeight: 1.75 }}>IA conversationnelle avec mémoire persistante, détection de comportements suspects en temps réel, systèmes de sauvegarde intelligents. Le futur des bots Discord, c'est maintenant.</p>
                     </div>
                   </div>
-                </div>
+                </TiltCard>
               </div>
             </div>
           </div>
         )}
 
-        {/* ══════ CONTACT ══════ */}
-        {active==="contact" && (
-          <div className="page-in">
-            {/* BANNER */}
-            <div className="banner-area" style={{position:"relative",overflow:"hidden",minHeight:"200px",padding:"50px 80px 40px",display:"flex",flexDirection:"column",justifyContent:"flex-end"}}>
-              <div style={{position:"absolute",inset:0,background:`url("data:image/svg+xml,${encodeURIComponent(dotPattern)}") repeat`,backgroundSize:"24px 24px"}} />
-              <div style={{position:"absolute",inset:0,background:"linear-gradient(135deg,rgba(16,185,129,.1) 0%,rgba(0,212,255,.05) 40%,rgba(5,5,14,.95) 70%,rgba(5,5,14,1) 100%)"}} />
-              <div style={{position:"absolute",inset:0,background:"linear-gradient(to bottom,rgba(5,5,14,.2) 0%,rgba(5,5,14,1) 100%)"}} />
-              <div className="banner-bg-text" style={{position:"absolute",right:"-10px",top:"50%",transform:"translateY(-50%)",fontSize:"150px",fontWeight:900,letterSpacing:"-.04em",color:"#10B981",opacity:.05,pointerEvents:"none",lineHeight:1,userSelect:"none"}}>CONTACT</div>
-              <div style={{position:"absolute",top:"-20%",left:"10%",width:"450px",height:"450px",borderRadius:"50%",background:"radial-gradient(circle,rgba(16,185,129,.08) 0%,transparent 70%)",pointerEvents:"none"}} />
-              <div style={{position:"relative",zIndex:1}}>
-                <div style={{display:"inline-flex",alignItems:"center",gap:"8px",padding:"4px 14px",border:"1px solid rgba(16,185,129,.3)",marginBottom:"12px",background:"rgba(16,185,129,.06)"}}>
-                  <div style={{width:"6px",height:"6px",borderRadius:"50%",background:"#10B981",animation:"pulse 2s ease-in-out infinite"}} />
-                  <span style={{fontSize:"9px",letterSpacing:".35em",color:"#10B981",textTransform:"uppercase"}}>contact.init — online</span>
+        {/* ════════ CONTACT ════════ */}
+        {active === "contact" && (
+          <div className="pi">
+            <div className="barea" style={{ position: "relative", overflow: "hidden", minHeight: "220px", padding: "50px 80px 44px", display: "flex", flexDirection: "column", justifyContent: "flex-end" }}>
+              <div style={{ position: "absolute", inset: 0, background: `url("data:image/svg+xml,${encodeURIComponent(dotSvg)}") repeat`, backgroundSize: "24px 24px", ...paralaxStyleSlow }} />
+              <div style={{ position: "absolute", inset: 0, background: "linear-gradient(135deg,rgba(16,185,129,.1) 0%,rgba(0,212,255,.05) 40%,rgba(5,5,14,.95) 70%,rgba(5,5,14,1) 100%)" }} />
+              <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom,rgba(5,5,14,.2) 0%,rgba(5,5,14,1) 100%)" }} />
+              <div className="bbt" style={{ position: "absolute", right: "-10px", top: "50%", transform: "translateY(-50%)", fontSize: "150px", fontWeight: 900, color: "#10B981", opacity: .05, pointerEvents: "none", lineHeight: 1, userSelect: "none" }}>CONTACT</div>
+              <div style={{ position: "relative", zIndex: 1 }}>
+                <div style={{ display: "inline-flex", alignItems: "center", gap: "8px", padding: "4px 14px", border: "1px solid rgba(16,185,129,.3)", marginBottom: "10px", background: "rgba(16,185,129,.06)" }}>
+                  <div style={{ width: "6px", height: "6px", borderRadius: "50%", background: "#10B981", animation: "pulse 2s ease-in-out infinite" }} />
+                  <span style={{ fontSize: "9px", letterSpacing: ".35em", color: "#10B981", textTransform: "uppercase" }}>contact.init — disponible</span>
                 </div>
-                <h2 className="sec-title fade-up" style={{fontSize:"62px",fontWeight:900,lineHeight:.9,color:"#E2E8F0"}}>Contact</h2>
-                <div style={{width:"60px",height:"2px",background:"linear-gradient(90deg,#10B981,transparent)",marginTop:"14px"}} />
+                <h2 className="st fu" style={{ fontSize: "62px", fontWeight: 900, lineHeight: .9, color: "#E2E8F0", marginBottom: "10px" }}>Contact</h2>
+                <p style={{ fontSize: "14px", color: "#5A6478", maxWidth: "480px" }}>Un projet en tête ? Une idée à concrétiser ? Parlons-en — je réponds rapidement.</p>
+                <div style={{ width: "60px", height: "2px", background: "linear-gradient(90deg,#10B981,transparent)", marginTop: "14px" }} />
               </div>
             </div>
 
-            <div className="sp" style={{padding:"40px 80px"}}>
-              <div className="contact-grid" style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"48px",alignItems:"start"}}>
-                {/* LEFT */}
+            <div className="sp" style={{ padding: "44px 80px" }}>
+              <div className="contg" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "48px", alignItems: "start" }}>
                 <div>
-                  <p style={{fontSize:"14px",color:"#8892A4",lineHeight:1.85,marginBottom:"36px",maxWidth:"360px"}}>Pour toute demande de collaboration, de projet Discord ou web — je suis disponible.</p>
-                  <div style={{display:"flex",flexDirection:"column",gap:"14px"}}>
+                  <p style={{ fontSize: "14px", color: "#5A6478", lineHeight: 1.85, marginBottom: "10px" }}>Je suis développeur indépendant, toujours à la recherche de nouveaux défis. Que vous ayez besoin d'un bot Discord robuste, d'un système RP complet ou d'un site web qui se démarque — je suis là.</p>
+                  <p style={{ fontSize: "13px", color: "#3A4560", lineHeight: 1.75, marginBottom: "36px" }}>Ma philosophie : chaque projet mérite un soin particulier. Pas de solution générique — du travail sur mesure, adapté à votre communauté et vos besoins.</p>
+                  <div style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
                     {[
-                      {label:"GitHub",value:"github.com/Mrexdev",link:"https://github.com/Mrexdev",color:"#E2E8F0",icon:"◈",sub:"Code & open source"},
-                      {label:"Site Sentinel",value:"sentinelbotfr",link:"https://sites.google.com/view/sentinelbotfr/sentinel",color:"#FF6B35",icon:"🛡️",sub:"Bot de sécurité Discord"},
-                      {label:"Discord",value:"Sur demande",color:"#8B5CF6",icon:"💬",sub:"Réponse rapide garantie"},
-                    ].map((c,i)=>(
-                      <div key={c.label} className={`card-in-${i+1}`}
-                        style={{padding:"18px 20px",background:"rgba(10,10,22,.92)",border:"1px solid rgba(255,255,255,.07)",borderLeft:`3px solid ${c.color}`,display:"flex",alignItems:"center",gap:"14px",backdropFilter:"blur(10px)",cursor:"default",transition:"all .25s"}}
-                        onMouseOver={e=>{ e.currentTarget.style.transform="translateX(5px)"; e.currentTarget.style.background=`linear-gradient(90deg,${c.color}08,rgba(10,10,22,.92))`; }}
-                        onMouseOut={e=>{ e.currentTarget.style.transform="none"; e.currentTarget.style.background="rgba(10,10,22,.92)"; }}>
-                        <div style={{width:"44px",height:"44px",background:`${c.color}10`,border:`1px solid ${c.color}28`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:"18px",flexShrink:0}}>{c.icon}</div>
-                        <div style={{flex:1}}>
-                          <div style={{fontSize:"9px",letterSpacing:".18em",color:"#3A4560",textTransform:"uppercase",marginBottom:"2px"}}>{c.label}</div>
-                          {c.link?<a href={c.link} target="_blank" rel="noreferrer" style={{fontSize:"13px",color:c.color,textDecoration:"none",display:"block"}}>{c.value}</a>:<span style={{fontSize:"13px",color:"#8892A4"}}>{c.value}</span>}
-                          <div style={{fontSize:"10px",color:"#3A4560",marginTop:"2px"}}>{c.sub}</div>
+                      { label: "GitHub", value: "github.com/Mrexdev", link: "https://github.com/Mrexdev", color: "#E2E8F0", icon: "◈", sub: "Code source & open source" },
+                      { label: "Site Sentinel", value: "sentinelbotfr — Google Sites", link: "https://sites.google.com/view/sentinelbotfr/sentinel", color: "#FF6B35", icon: "🛡️", sub: "Mon bot de sécurité Discord" },
+                      { label: "Discord", value: "Disponible sur demande", color: "#8B5CF6", icon: "💬", sub: "Réponse garantie sous 24h" },
+                    ].map((c, i) => (
+                      <TiltCard key={c.label} className={`ci${i + 1}`} style={{ padding: "18px 20px", background: "rgba(10,10,22,.92)", border: "1px solid rgba(255,255,255,.07)", borderLeft: `3px solid ${c.color}`, display: "flex", alignItems: "center", gap: "14px" }}>
+                        <div style={{ width: "44px", height: "44px", background: `${c.color}10`, border: `1px solid ${c.color}28`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "18px", flexShrink: 0 }}>{c.icon}</div>
+                        <div style={{ flex: 1 }}>
+                          <div style={{ fontSize: "9px", letterSpacing: ".18em", color: "#3A4560", textTransform: "uppercase", marginBottom: "2px" }}>{c.label}</div>
+                          {c.link ? <a href={c.link} target="_blank" rel="noreferrer" style={{ fontSize: "13px", color: c.color, textDecoration: "none", display: "block" }}>{c.value}</a> : <span style={{ fontSize: "13px", color: "#8892A4" }}>{c.value}</span>}
+                          <div style={{ fontSize: "10px", color: "#3A4560", marginTop: "2px" }}>{c.sub}</div>
                         </div>
-                        {c.link&&<span style={{color:"#3A4560",fontSize:"14px"}}>→</span>}
-                      </div>
+                        {c.link && <span style={{ color: "#3A4560", fontSize: "14px" }}>→</span>}
+                      </TiltCard>
                     ))}
                   </div>
                 </div>
-                {/* RIGHT */}
-                <div style={{display:"flex",flexDirection:"column",gap:"16px"}}>
-                  {/* Status */}
-                  <div style={{padding:"28px",background:"rgba(10,10,22,.92)",border:"1px solid rgba(255,255,255,.07)",borderTop:"2px solid #10B981",backdropFilter:"blur(10px)",animation:"cardIn .55s .1s ease both",cursor:"default",position:"relative",overflow:"hidden"}}>
-                    <div style={{position:"absolute",top:"-30px",right:"-30px",width:"120px",height:"120px",borderRadius:"50%",background:"radial-gradient(circle,rgba(16,185,129,.12),transparent 70%)"}} />
-                    <div style={{display:"flex",alignItems:"center",gap:"8px",marginBottom:"14px"}}>
-                      <div style={{width:"8px",height:"8px",borderRadius:"50%",background:"#10B981",boxShadow:"0 0 8px #10B981",animation:"pulse 2s ease-in-out infinite"}} />
-                      <span style={{fontSize:"10px",color:"#10B981",letterSpacing:".14em",textTransform:"uppercase",fontWeight:600}}>Disponible pour des projets</span>
+                <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+                  <TiltCard className="ci1" style={{ padding: "30px", background: "rgba(10,10,22,.92)", border: "1px solid rgba(255,255,255,.07)", borderTop: "2px solid #10B981", overflow: "hidden" }}>
+                    <div style={{ position: "absolute", top: "-30px", right: "-30px", width: "130px", height: "130px", borderRadius: "50%", background: "radial-gradient(circle,rgba(16,185,129,.1),transparent 70%)", pointerEvents: "none" }} />
+                    <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "14px" }}>
+                      <div style={{ width: "8px", height: "8px", borderRadius: "50%", background: "#10B981", boxShadow: "0 0 8px #10B981", animation: "pulse 2s ease-in-out infinite" }} />
+                      <span style={{ fontSize: "10px", color: "#10B981", letterSpacing: ".14em", textTransform: "uppercase", fontWeight: 600 }}>Disponible pour des projets</span>
                     </div>
-                    <h3 style={{fontSize:"19px",fontWeight:700,color:"#E2E8F0",marginBottom:"10px"}}>Travaillons ensemble</h3>
-                    <p style={{fontSize:"13px",color:"#8892A4",lineHeight:1.75}}>Bot Discord sur mesure, système RP, site web moderne — chaque projet mérite attention.</p>
-                  </div>
-                  {/* Stack */}
-                  <div style={{padding:"24px",background:"rgba(10,10,22,.92)",border:"1px solid rgba(255,255,255,.07)",backdropFilter:"blur(10px)",animation:"cardIn .55s .2s ease both",cursor:"default"}}>
-                    <div style={{fontSize:"9px",letterSpacing:".2em",color:"#3A4560",textTransform:"uppercase",marginBottom:"14px"}}>Stack utilisée</div>
-                    <div style={{display:"flex",flexWrap:"wrap",gap:"7px"}}>
-                      {["Discord.js","Node.js","React","MySQL","Lua","HTML/CSS","FiveM"].map(t=>(
-                        <span key={t} style={{fontSize:"11px",padding:"4px 10px",background:"rgba(0,212,255,.06)",color:"#00D4FF",border:"1px solid rgba(0,212,255,.15)",letterSpacing:".03em",transition:"all .2s",cursor:"default"}}
-                          onMouseOver={e=>{ e.currentTarget.style.background="rgba(0,212,255,.15)"; }} onMouseOut={e=>{ e.currentTarget.style.background="rgba(0,212,255,.06)"; }}>
-                          {t}
-                        </span>
+                    <h3 style={{ fontSize: "20px", fontWeight: 700, color: "#E2E8F0", marginBottom: "12px" }}>Travaillons ensemble</h3>
+                    <p style={{ fontSize: "13px", color: "#5A6478", lineHeight: 1.8 }}>Bot Discord sur mesure avec toutes les fonctionnalités dont vous rêvez. Système RP qui donne vie à votre serveur GTA. Site web qui reflète vraiment qui vous êtes. Chaque collaboration est unique.</p>
+                  </TiltCard>
+
+                  <TiltCard className="ci2" style={{ padding: "26px", background: "rgba(10,10,22,.92)", border: "1px solid rgba(255,255,255,.07)", overflow: "hidden" }}>
+                    <div style={{ fontSize: "9px", letterSpacing: ".2em", color: "#3A4560", textTransform: "uppercase", marginBottom: "16px" }}>Stack utilisée</div>
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: "7px", marginBottom: "14px" }}>
+                      {["Discord.js", "Node.js", "React", "MySQL", "Lua", "HTML/CSS", "FiveM"].map(t => (
+                        <span key={t} style={{ fontSize: "11px", padding: "4px 10px", background: "rgba(0,212,255,.06)", color: "#00D4FF", border: "1px solid rgba(0,212,255,.15)", cursor: "default", transition: "all .2s" }}
+                          onMouseOver={e => { e.currentTarget.style.background = "rgba(0,212,255,.15)"; e.currentTarget.style.transform = "translateY(-2px)"; }}
+                          onMouseOut={e => { e.currentTarget.style.background = "rgba(0,212,255,.06)"; e.currentTarget.style.transform = "none"; }}>{t}</span>
                       ))}
                     </div>
-                  </div>
-                  {/* Quote */}
-                  <div style={{padding:"22px",background:"rgba(255,107,53,.04)",border:"1px solid rgba(255,107,53,.14)",borderLeft:"3px solid #FF6B35",backdropFilter:"blur(10px)",animation:"cardIn .55s .3s ease both",cursor:"default"}}>
-                    <p style={{fontSize:"12px",fontStyle:"italic",color:"#8892A4",lineHeight:1.7,marginBottom:"8px"}}>"Créer des bots stylés, fluides et intelligents, c'est mon métier."</p>
-                    <span style={{fontSize:"10px",color:"#FF6B35",letterSpacing:".07em"}}>— ๖̶ζ͜͡Mrex</span>
-                  </div>
+                    <p style={{ fontSize: "11px", color: "#3A4560", lineHeight: 1.7 }}>Technologies sélectionnées pour leur fiabilité et leur performance dans les environnements de production.</p>
+                  </TiltCard>
+
+                  <TiltCard className="ci3" style={{ padding: "24px", background: "rgba(255,107,53,.04)", border: "1px solid rgba(255,107,53,.14)", borderLeft: "3px solid #FF6B35", overflow: "hidden" }}>
+                    <div style={{ position: "absolute", right: "16px", top: "16px", fontSize: "28px", opacity: .3 }}>💬</div>
+                    <p style={{ fontSize: "13px", fontStyle: "italic", color: "#8892A4", lineHeight: 1.75, marginBottom: "8px" }}>"Créer des bots stylés, fluides et intelligents — ce n'est pas juste un travail, c'est une façon de voir le code comme un art."</p>
+                    <span style={{ fontSize: "10px", color: "#FF6B35", letterSpacing: ".07em" }}>— ๖̶ζ͜͡Mrex</span>
+                  </TiltCard>
                 </div>
               </div>
             </div>
