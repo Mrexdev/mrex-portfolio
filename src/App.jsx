@@ -2,9 +2,9 @@ import { useState, useEffect, useRef, useCallback } from "react";
 
 /* ─────────────── DATA ─────────────── */
 const SKILLS = [
-  { name: "JavaScript", level: 90, color: "#F7DF1E", icon: "JS", desc: "ES6+, async/await, DOM, modules" },
-  { name: "Discord.js", level: 93, color: "#5865F2", icon: "DJ", desc: "Slash commands, events, API v10" },
-  { name: "Node.js", level: 88, color: "#339933", icon: "NJ", desc: "API REST, streams, CLI tools" },
+  { name: "JavaScript", level: 95, color: "#F7DF1E", icon: "JS", desc: "ES6+, async/await, DOM, modules" },
+  { name: "Discord.js", level: 98, color: "#5865F2", icon: "DJ", desc: "Slash commands, events, API v10" },
+  { name: "Node.js", level: 92, color: "#339933", icon: "NJ", desc: "API REST, streams, CLI tools" },
   { name: "HTML/CSS", level: 95, color: "#E34F26", icon: "HC", desc: "Responsive, animations, Grid/Flex" },
   { name: "React", level: 80, color: "#61DAFB", icon: "RE", desc: "Hooks, context, SPA, composants" },
   { name: "MySQL", level: 90, color: "#0F6AB4", icon: "MY", desc: "Requêtes, jointures, ORM, BDD" },
