@@ -386,7 +386,7 @@ useEffect(() => {
     "FiveM Architect"
   ];
 
-  let index = 0;
+    let index = 0;
   let charIndex = 0;
   let isDeleting = false;
   let timeout;
@@ -394,13 +394,14 @@ useEffect(() => {
   const loop = () => {
     const current = texts[index];
 
-    document.title = current.substring(0, charIndex);
+    // ✅ IMPORTANT → on met +1 ici
+    document.title = current.substring(0, charIndex + 1);
 
     if (!isDeleting) {
       charIndex++;
       if (charIndex === current.length) {
         isDeleting = true;
-        timeout = setTimeout(loop, 1500); // pause
+        timeout = setTimeout(loop, 1500);
         return;
       }
     } else {
