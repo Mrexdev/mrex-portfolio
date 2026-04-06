@@ -7,7 +7,7 @@ const SKILLS = [
   { name: "Node.js", level: 88, color: "#339933", icon: "NJ", desc: "API REST, streams, CLI tools" },
   { name: "HTML/CSS", level: 95, color: "#E34F26", icon: "HC", desc: "Responsive, animations, Grid/Flex" },
   { name: "React", level: 80, color: "#61DAFB", icon: "RE", desc: "Hooks, context, SPA, composants" },
-  { name: "MySQL", level: 75, color: "#0F6AB4", icon: "MY", desc: "Requêtes, jointures, ORM, BDD" },
+  { name: "MySQL", level: 90, color: "#0F6AB4", icon: "MY", desc: "Requêtes, jointures, ORM, BDD" },
   { name: "Lua/FiveM", level: 72, color: "#7C3AED", icon: "LU", desc: "Scripts RP, NUI, events serveur" },
 ];
 
