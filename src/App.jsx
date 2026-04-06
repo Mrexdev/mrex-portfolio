@@ -380,10 +380,10 @@ export default function App() {
 
 useEffect(() => {
   const texts = [
-    "⚡ Mrex — Portfolio",
-    "🚀 Développeur Discord",
-    "💻 Fullstack Dev",
-    "🎮 FiveM Architect"
+    "Mrex — Portfolio",
+    "Développeur Discord",
+    "Fullstack Dev",
+    "FiveM Architect"
   ];
 
   let index = 0;
