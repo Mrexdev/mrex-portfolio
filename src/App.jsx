@@ -389,16 +389,18 @@ useEffect(() => {
   let index = 0;
   let charIndex = 0;
   let isDeleting = false;
+  let timeout;
 
-  const typeEffect = () => {
+  const loop = () => {
     const current = texts[index];
-    document.title = current.substring(0, charIndex) + "|";
+
+    document.title = current.substring(0, charIndex);
 
     if (!isDeleting) {
       charIndex++;
       if (charIndex === current.length) {
         isDeleting = true;
-        setTimeout(typeEffect, 1500);
+        timeout = setTimeout(loop, 1500); // pause
         return;
       }
     } else {
@@ -409,10 +411,12 @@ useEffect(() => {
       }
     }
 
-    setTimeout(typeEffect, isDeleting ? 50 : 100);
+    timeout = setTimeout(loop, isDeleting ? 40 : 90);
   };
 
-  typeEffect();
+  loop();
+
+  return () => clearTimeout(timeout);
 }, []);
   
   const go = s => setActive(s);
