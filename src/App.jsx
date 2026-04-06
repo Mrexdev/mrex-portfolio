@@ -843,7 +843,7 @@ useEffect(() => {
             </div>
 
             <div className="sp" style={{ padding: "44px 80px" }}>
-              <div className="tg" style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "22px", maxWidth: "960px",justifyContent: "center"}}>
+              <div className="tg" style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(300px, 1fr))",gap: "22px",width: "100%"}}>
                 {TIMELINE.map((item, i) => (
                   <TiltCard key={item.year} className={`ci${i + 1}`} style={{ padding: "32px", background: "rgba(10,10,22,.92)", border: "1px solid rgba(255,255,255,.07)", borderLeft: `3px solid ${item.color}`, overflow: "hidden" }}>
                     <div style={{ position: "absolute", right: "-6px", bottom: "-14px", fontSize: "90px", fontWeight: 900, color: item.color, opacity: .04, lineHeight: 1, pointerEvents: "none" }}>{item.year}</div>
