@@ -84,6 +84,261 @@ const NAV_ICONS = {
   contact:<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>,
 };
 
+/* ─────────────── CONTACT SECTION ─────────────── */
+const PROJECT_TYPES = [
+  { id: "bot", label: "🤖 Bot Discord", color: "#5865F2" },
+  { id: "fivem", label: "🎮 Script FiveM", color: "#F59E0B" },
+  { id: "web", label: "🌐 Site Web", color: "#00D4FF" },
+  { id: "security", label: "🛡️ Sécurité", color: "#FF6B35" },
+  { id: "other", label: "✨ Autre", color: "#8B5CF6" },
+];
+
+// ⚠️  REMPLACE PAR TON WEBHOOK DISCORD :
+// Discord → Paramètres du serveur → Intégrations → Webhooks → Nouveau webhook
+const WEBHOOK_URL = "https://discord.com/api/webhooks/1490654845429092494/tZX_-oLnuSPalQgZgLYRQTSa7mJZT_db_ypsPSW2IIxjcYjhvEvonnX0IGTqcOGkihQ3";
+
+function ContactSection({ paralaxStyleSlow, paralaxStyle, dotSvg }) {
+  const [form, setForm] = useState({ name: "", email: "", type: "", message: "" });
+  const [focused, setFocused] = useState(null);
+  const [status, setStatus] = useState("idle"); // idle | sending | success | error
+  const [charCount, setCharCount] = useState(0);
+  const [previewMode, setPreviewMode] = useState(false);
+
+  const selectedType = PROJECT_TYPES.find(t => t.id === form.type);
+
+  const handleChange = (field, val) => {
+    setForm(p => ({ ...p, [field]: val }));
+    if (field === "message") setCharCount(val.length);
+  };
+
+  const send = async () => {
+    if (!form.name || !form.message || !form.type) return;
+    setStatus("sending");
+    const embed = {
+      title: `📬 Nouveau message — ${selectedType?.label || form.type}`,
+      description: form.message,
+      color: parseInt((selectedType?.color || "#00D4FF").replace("#", ""), 16),
+      fields: [
+        { name: "👤 Nom / Pseudo", value: form.name, inline: true },
+        { name: "📧 Email", value: form.email || "*Non renseigné*", inline: true },
+        { name: "🎯 Type de projet", value: selectedType?.label || form.type, inline: true },
+      ],
+      footer: { text: "mrex-portfolio.vercel.app • " + new Date().toLocaleString("fr-FR") },
+      thumbnail: { url: "https://i.pinimg.com/736x/a4/a9/a6/a4a9a6a8e3bae75af733926c7cfec1b2.jpg" },
+    };
+    try {
+      const res = await fetch(WEBHOOK_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username: "๖̶ζ͜͡Mrex Portfolio", avatar_url: "https://i.pinimg.com/736x/a4/a9/a6/a4a9a6a8e3bae75af733926c7cfec1b2.jpg", embeds: [embed] }),
+      });
+      if (res.ok) { setStatus("success"); setForm({ name: "", email: "", type: "", message: "" }); setCharCount(0); }
+      else setStatus("error");
+    } catch { setStatus("error"); }
+    setTimeout(() => setStatus("idle"), 5000);
+  };
+
+  const inputBase = (field) => ({
+    width: "100%", padding: "13px 16px",
+    background: focused === field ? "rgba(0,212,255,.04)" : "rgba(6,6,16,.9)",
+    border: `1px solid ${focused === field ? "rgba(0,212,255,.5)" : "rgba(255,255,255,.08)"}`,
+    color: "#E2E8F0", fontSize: "14px", outline: "none",
+    fontFamily: "'Exo 2',sans-serif", transition: "all .25s",
+    boxShadow: focused === field ? "0 0 0 3px rgba(0,212,255,.08), inset 0 0 20px rgba(0,212,255,.03)" : "none",
+  });
+
+  return (
+    <div className="pi">
+      {/* BANNER */}
+      <div className="barea" style={{ position: "relative", overflow: "hidden", minHeight: "220px", padding: "50px 80px 44px", display: "flex", flexDirection: "column", justifyContent: "flex-end" }}>
+        <div style={{ position: "absolute", inset: 0, background: `url("data:image/svg+xml,${encodeURIComponent(dotSvg)}") repeat`, backgroundSize: "24px 24px", ...paralaxStyleSlow }} />
+        <div style={{ position: "absolute", inset: 0, background: "linear-gradient(135deg,rgba(16,185,129,.1) 0%,rgba(0,212,255,.05) 40%,rgba(5,5,14,.95) 70%,rgba(5,5,14,1) 100%)" }} />
+        <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom,rgba(5,5,14,.2) 0%,rgba(5,5,14,1) 100%)" }} />
+        <div className="bbt" style={{ position: "absolute", right: "-10px", top: "50%", transform: "translateY(-50%)", fontSize: "150px", fontWeight: 900, color: "#10B981", opacity: .05, pointerEvents: "none", lineHeight: 1, userSelect: "none" }}>CONTACT</div>
+        <div style={{ position: "absolute", top: "-20%", left: "10%", width: "450px", height: "450px", borderRadius: "50%", background: "radial-gradient(circle,rgba(16,185,129,.08),transparent 70%)", ...paralaxStyle, pointerEvents: "none" }} />
+        <div style={{ position: "relative", zIndex: 1 }}>
+          <div style={{ display: "inline-flex", alignItems: "center", gap: "8px", padding: "4px 14px", border: "1px solid rgba(16,185,129,.3)", marginBottom: "10px", background: "rgba(16,185,129,.06)" }}>
+            <div style={{ width: "6px", height: "6px", borderRadius: "50%", background: "#10B981", animation: "pulse 2s ease-in-out infinite" }} />
+            <span style={{ fontSize: "9px", letterSpacing: ".35em", color: "#10B981", textTransform: "uppercase" }}>contact.init — en ligne · réponse sous 24h</span>
+          </div>
+          <h2 className="st fu" style={{ fontSize: "62px", fontWeight: 900, lineHeight: .9, color: "#E2E8F0", marginBottom: "10px" }}>Contact</h2>
+          <p style={{ fontSize: "14px", color: "#5A6478", maxWidth: "480px" }}>Un projet en tête ? Remplis le formulaire — ton message arrive directement dans mon Discord.</p>
+          <div style={{ width: "60px", height: "2px", background: "linear-gradient(90deg,#10B981,transparent)", marginTop: "14px" }} />
+        </div>
+      </div>
+
+      <div className="sp" style={{ padding: "44px 80px" }}>
+        <div className="contg" style={{ display: "grid", gridTemplateColumns: "1fr 1.4fr", gap: "48px", alignItems: "start" }}>
+
+          {/* ── LEFT : infos + liens ── */}
+          <div>
+            <p style={{ fontSize: "14px", color: "#5A6478", lineHeight: 1.85, marginBottom: "10px" }}>
+              Développeur indépendant passionné, je construis des expériences numériques depuis 2022. Bots Discord, scripts FiveM, sites web — chaque projet est traité avec soin et professionnalisme.
+            </p>
+            <p style={{ fontSize: "13px", color: "#3A4560", lineHeight: 1.75, marginBottom: "32px" }}>
+              Mon approche : comprendre ton besoin avant de coder. Pas de solution copier-coller — du travail sur mesure.
+            </p>
+
+            {/* LINKS */}
+            <div style={{ display: "flex", flexDirection: "column", gap: "12px", marginBottom: "32px" }}>
+              {[
+                { label: "GitHub", value: "github.com/Mrexdev", link: "https://github.com/Mrexdev", color: "#E2E8F0", icon: "◈", sub: "Code source & projets" },
+                { label: "Site Sentinel", value: "sentinelbotfr", link: "https://sites.google.com/view/sentinelbotfr/sentinel", color: "#FF6B35", icon: "🛡️", sub: "Mon bot de sécurité Discord" },
+                { label: "Discord", value: "Sur demande via le formulaire", color: "#5865F2", icon: "💬", sub: "Réponse garantie sous 24h" },
+              ].map((c, i) => (
+                <TiltCard key={c.label} className={`ci${i + 1}`} style={{ padding: "16px 18px", background: "rgba(10,10,22,.92)", border: "1px solid rgba(255,255,255,.07)", borderLeft: `3px solid ${c.color}`, display: "flex", alignItems: "center", gap: "14px" }}>
+                  <div style={{ width: "40px", height: "40px", background: `${c.color}10`, border: `1px solid ${c.color}28`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "17px", flexShrink: 0 }}>{c.icon}</div>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontSize: "9px", letterSpacing: ".18em", color: "#3A4560", textTransform: "uppercase", marginBottom: "2px" }}>{c.label}</div>
+                    {c.link ? <a href={c.link} target="_blank" rel="noreferrer" style={{ fontSize: "13px", color: c.color, textDecoration: "none" }}>{c.value}</a> : <span style={{ fontSize: "12px", color: "#8892A4" }}>{c.value}</span>}
+                    <div style={{ fontSize: "10px", color: "#3A4560", marginTop: "1px" }}>{c.sub}</div>
+                  </div>
+                  {c.link && <span style={{ color: "#3A4560" }}>→</span>}
+                </TiltCard>
+              ))}
+            </div>
+
+            {/* STATUS CARD */}
+            <div style={{ padding: "20px 22px", background: "rgba(10,10,22,.92)", border: "1px solid rgba(255,255,255,.07)", borderTop: "2px solid #10B981", position: "relative", overflow: "hidden" }}>
+              <div style={{ position: "absolute", top: "-20px", right: "-20px", width: "100px", height: "100px", borderRadius: "50%", background: "radial-gradient(circle,rgba(16,185,129,.1),transparent 70%)", pointerEvents: "none" }} />
+              <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "12px" }}>
+                <div style={{ width: "7px", height: "7px", borderRadius: "50%", background: "#10B981", boxShadow: "0 0 7px #10B981", animation: "pulse 2s ease-in-out infinite" }} />
+                <span style={{ fontSize: "10px", color: "#10B981", letterSpacing: ".12em", textTransform: "uppercase", fontWeight: 600 }}>Disponible · Open to work</span>
+              </div>
+              <p style={{ fontSize: "12px", color: "#5A6478", lineHeight: 1.7 }}>Actuellement disponible pour de nouvelles collaborations. Les messages envoyés via le formulaire arrivent directement dans mon Discord privé.</p>
+            </div>
+          </div>
+
+          {/* ── RIGHT : FORM ── */}
+          <div>
+            {/* Discord preview toggle */}
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "20px" }}>
+              <div style={{ fontSize: "9px", letterSpacing: ".3em", color: "#3A4560", textTransform: "uppercase" }}>// envoyer un message</div>
+              <button onClick={() => setPreviewMode(p => !p)}
+                style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "10px", color: previewMode ? "#5865F2" : "#3A4560", background: previewMode ? "rgba(88,101,242,.1)" : "transparent", border: `1px solid ${previewMode ? "rgba(88,101,242,.35)" : "rgba(255,255,255,.08)"}`, padding: "5px 12px", cursor: "pointer", transition: "all .2s", letterSpacing: ".05em" }}>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M20.317 4.37a19.791 19.791 0 00-4.885-1.515.074.074 0 00-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 00-5.487 0 12.64 12.64 0 00-.617-1.25.077.077 0 00-.079-.037A19.736 19.736 0 003.677 4.37a.07.07 0 00-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 00.031.057 19.9 19.9 0 005.993 3.03.078.078 0 00.084-.028 14.09 14.09 0 001.226-1.994.076.076 0 00-.041-.106 13.107 13.107 0 01-1.872-.892.077.077 0 01-.008-.128 10.2 10.2 0 00.372-.292.074.074 0 01.077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 01.078.01c.12.098.246.198.373.292a.077.077 0 01-.006.127 12.299 12.299 0 01-1.873.892.077.077 0 00-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 00.084.028 19.839 19.839 0 006.002-3.03.077.077 0 00.032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 00-.031-.03z"/></svg>
+                Aperçu Discord
+              </button>
+            </div>
+
+            {/* DISCORD PREVIEW */}
+            {previewMode && (
+              <div style={{ marginBottom: "16px", padding: "16px", background: "#36393f", border: "1px solid rgba(255,255,255,.1)", animation: "cardIn .3s ease both", fontFamily: "'Whitney',sans-serif" }}>
+                <div style={{ fontSize: "9px", letterSpacing: ".1em", color: "#72767d", marginBottom: "10px", textTransform: "uppercase" }}>Aperçu — Embed Discord</div>
+                <div style={{ borderLeft: `4px solid ${selectedType?.color || "#5865F2"}`, paddingLeft: "12px" }}>
+                  <div style={{ fontSize: "14px", fontWeight: 700, color: "#fff", marginBottom: "6px" }}>📬 Nouveau message — {selectedType?.label || "Type non sélectionné"}</div>
+                  <div style={{ fontSize: "13px", color: "#dcddde", marginBottom: "10px", lineHeight: 1.5 }}>{form.message || "*Votre message apparaîtra ici...*"}</div>
+                  <div style={{ display: "flex", gap: "16px", flexWrap: "wrap" }}>
+                    <div><div style={{ fontSize: "10px", color: "#72767d", textTransform: "uppercase", letterSpacing: ".05em", fontWeight: 700, marginBottom: "2px" }}>👤 Nom</div><div style={{ fontSize: "12px", color: "#dcddde" }}>{form.name || "—"}</div></div>
+                    <div><div style={{ fontSize: "10px", color: "#72767d", textTransform: "uppercase", letterSpacing: ".05em", fontWeight: 700, marginBottom: "2px" }}>📧 Email</div><div style={{ fontSize: "12px", color: "#dcddde" }}>{form.email || "—"}</div></div>
+                  </div>
+                  <div style={{ fontSize: "10px", color: "#72767d", marginTop: "8px" }}>mrex-portfolio.vercel.app • {new Date().toLocaleString("fr-FR")}</div>
+                </div>
+              </div>
+            )}
+
+            {/* FORM */}
+            <div style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
+              {/* Name + Email */}
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
+                <div>
+                  <label style={{ fontSize: "9px", letterSpacing: ".2em", color: "#3A4560", textTransform: "uppercase", display: "block", marginBottom: "6px" }}>Nom / Pseudo <span style={{ color: "#FF6B35" }}>*</span></label>
+                  <input value={form.name} onChange={e => handleChange("name", e.target.value)}
+                    onFocus={() => setFocused("name")} onBlur={() => setFocused(null)}
+                    placeholder="๖̶ζ͜͡Mrex..." style={inputBase("name")} />
+                </div>
+                <div>
+                  <label style={{ fontSize: "9px", letterSpacing: ".2em", color: "#3A4560", textTransform: "uppercase", display: "block", marginBottom: "6px" }}>Email (optionnel)</label>
+                  <input value={form.email} onChange={e => handleChange("email", e.target.value)}
+                    onFocus={() => setFocused("email")} onBlur={() => setFocused(null)}
+                    placeholder="ton@email.com" style={inputBase("email")} />
+                </div>
+              </div>
+
+              {/* Type selector */}
+              <div>
+                <label style={{ fontSize: "9px", letterSpacing: ".2em", color: "#3A4560", textTransform: "uppercase", display: "block", marginBottom: "8px" }}>Type de projet <span style={{ color: "#FF6B35" }}>*</span></label>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
+                  {PROJECT_TYPES.map(t => (
+                    <button key={t.id} onClick={() => handleChange("type", t.id)}
+                      style={{ padding: "8px 16px", background: form.type === t.id ? `${t.color}20` : "rgba(6,6,16,.9)", border: `1px solid ${form.type === t.id ? t.color : "rgba(255,255,255,.08)"}`, color: form.type === t.id ? t.color : "#3A4560", fontSize: "12px", cursor: "pointer", transition: "all .2s", transform: form.type === t.id ? "translateY(-2px)" : "none", boxShadow: form.type === t.id ? `0 6px 18px ${t.color}22` : "none", fontFamily: "'Exo 2',sans-serif" }}>
+                      {t.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Message */}
+              <div>
+                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "6px" }}>
+                  <label style={{ fontSize: "9px", letterSpacing: ".2em", color: "#3A4560", textTransform: "uppercase" }}>Message <span style={{ color: "#FF6B35" }}>*</span></label>
+                  <span style={{ fontSize: "9px", color: charCount > 900 ? "#FF6B35" : "#3A4560" }}>{charCount}/1000</span>
+                </div>
+                <textarea value={form.message} onChange={e => handleChange("message", e.target.value)}
+                  onFocus={() => setFocused("message")} onBlur={() => setFocused(null)}
+                  maxLength={1000} rows={5}
+                  placeholder="Décris ton projet, tes besoins, ta vision... Plus c'est détaillé, mieux je peux t'aider."
+                  style={{ ...inputBase("message"), resize: "vertical", minHeight: "130px", lineHeight: 1.7 }} />
+              </div>
+
+              {/* Submit */}
+              <div style={{ display: "flex", alignItems: "center", gap: "16px", flexWrap: "wrap" }}>
+                <button onClick={send}
+                  disabled={status === "sending" || !form.name || !form.message || !form.type}
+                  style={{
+                    padding: "14px 32px", fontSize: "12px", fontWeight: 700, letterSpacing: ".12em", textTransform: "uppercase",
+                    cursor: (status === "sending" || !form.name || !form.message || !form.type) ? "not-allowed" : "pointer",
+                    border: "none", transition: "all .3s",
+                    background: status === "success" ? "linear-gradient(135deg,#10B981,#059669)" : status === "error" ? "#EF4444" : status === "sending" ? "rgba(0,212,255,.5)" : "linear-gradient(135deg,#5865F2,#4752c4)",
+                    color: "#fff",
+                    opacity: (!form.name || !form.message || !form.type) && status === "idle" ? .5 : 1,
+                    boxShadow: status === "success" ? "0 0 30px rgba(16,185,129,.4)" : status === "idle" && form.name && form.message && form.type ? "0 0 24px rgba(88,101,242,.35)" : "none",
+                    transform: status === "success" ? "scale(1.02)" : "none",
+                    display: "flex", alignItems: "center", gap: "10px",
+                  }}>
+                  {status === "sending" && <span style={{ display: "inline-block", width: "14px", height: "14px", border: "2px solid rgba(255,255,255,.3)", borderTop: "2px solid #fff", borderRadius: "50%", animation: "rotRing .7s linear infinite" }} />}
+                  {status === "success" && "✓"}
+                  {status === "error" && "✕"}
+                  {status === "sending" ? "Envoi en cours..." : status === "success" ? "Message envoyé !" : status === "error" ? "Erreur — réessaie" : "Envoyer via Discord →"}
+                </button>
+
+                {/* Discord badge */}
+                <div style={{ display: "flex", alignItems: "center", gap: "8px", padding: "8px 14px", background: "rgba(88,101,242,.08)", border: "1px solid rgba(88,101,242,.2)" }}>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="#5865F2"><path d="M20.317 4.37a19.791 19.791 0 00-4.885-1.515.074.074 0 00-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 00-5.487 0 12.64 12.64 0 00-.617-1.25.077.077 0 00-.079-.037A19.736 19.736 0 003.677 4.37a.07.07 0 00-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 00.031.057 19.9 19.9 0 005.993 3.03.078.078 0 00.084-.028 14.09 14.09 0 001.226-1.994.076.076 0 00-.041-.106 13.107 13.107 0 01-1.872-.892.077.077 0 01-.008-.128 10.2 10.2 0 00.372-.292.074.074 0 01.077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 01.078.01c.12.098.246.198.373.292a.077.077 0 01-.006.127 12.299 12.299 0 01-1.873.892.077.077 0 00-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 00.084.028 19.839 19.839 0 006.002-3.03.077.077 0 00.032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 00-.031-.03z"/></svg>
+                  <span style={{ fontSize: "10px", color: "#5865F2", letterSpacing: ".06em" }}>Livré sur Discord</span>
+                </div>
+              </div>
+
+              {/* Note webhook */}
+              {WEBHOOK_URL === "REMPLACE_PAR_TON_WEBHOOK_DISCORD" && (
+                <div style={{ padding: "10px 14px", background: "rgba(255,107,53,.06)", border: "1px solid rgba(255,107,53,.2)", fontSize: "11px", color: "#FF6B35", lineHeight: 1.6 }}>
+                  ⚠️ Configure ton webhook Discord dans <code style={{ background: "rgba(255,107,53,.15)", padding: "1px 5px" }}>App.jsx</code> — ligne <code style={{ background: "rgba(255,107,53,.15)", padding: "1px 5px" }}>WEBHOOK_URL</code>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* BOTTOM QUOTE */}
+        <div style={{ marginTop: "48px", padding: "28px", background: "rgba(255,107,53,.04)", border: "1px solid rgba(255,107,53,.12)", borderLeft: "3px solid #FF6B35", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "16px" }}>
+          <div>
+            <p style={{ fontSize: "13px", fontStyle: "italic", color: "#8892A4", lineHeight: 1.75, marginBottom: "6px" }}>"Créer des bots stylés, fluides et intelligents — ce n'est pas juste un travail, c'est une façon de voir le code comme un art."</p>
+            <span style={{ fontSize: "10px", color: "#FF6B35", letterSpacing: ".07em" }}>— ๖̶ζ͜͡Mrex</span>
+          </div>
+          <div style={{ display: "flex", gap: "12px" }}>
+            <a href="https://github.com/Mrexdev" target="_blank" rel="noreferrer" style={{ width: "38px", height: "38px", border: "1px solid rgba(255,255,255,.1)", display: "flex", alignItems: "center", justifyContent: "center", color: "#3A4560", textDecoration: "none", transition: "all .2s" }} onMouseOver={e => { e.currentTarget.style.color = "#E2E8F0"; e.currentTarget.style.borderColor = "rgba(226,232,240,.3)"; }} onMouseOut={e => { e.currentTarget.style.color = "#3A4560"; e.currentTarget.style.borderColor = "rgba(255,255,255,.1)"; }}>
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+            </a>
+            <a href="https://sites.google.com/view/sentinelbotfr/sentinel" target="_blank" rel="noreferrer" style={{ width: "38px", height: "38px", border: "1px solid rgba(88,101,242,.2)", display: "flex", alignItems: "center", justifyContent: "center", color: "#5865F2", textDecoration: "none", transition: "all .2s", background: "rgba(88,101,242,.06)" }} onMouseOver={e => { e.currentTarget.style.background = "rgba(88,101,242,.15)"; }} onMouseOut={e => { e.currentTarget.style.background = "rgba(88,101,242,.06)"; }}>
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor"><path d="M20.317 4.37a19.791 19.791 0 00-4.885-1.515.074.074 0 00-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 00-5.487 0 12.64 12.64 0 00-.617-1.25.077.077 0 00-.079-.037A19.736 19.736 0 003.677 4.37a.07.07 0 00-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 00.031.057 19.9 19.9 0 005.993 3.03.078.078 0 00.084-.028 14.09 14.09 0 001.226-1.994.076.076 0 00-.041-.106 13.107 13.107 0 01-1.872-.892.077.077 0 01-.008-.128 10.2 10.2 0 00.372-.292.074.074 0 01.077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 01.078.01c.12.098.246.198.373.292a.077.077 0 01-.006.127 12.299 12.299 0 01-1.873.892.077.077 0 00-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 00.084.028 19.839 19.839 0 006.002-3.03.077.077 0 00.032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 00-.031-.03z"/></svg>
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 /* ─────────────── MAIN APP ─────────────── */
 export default function App() {
   const [active, setActive] = useState("home");
@@ -240,7 +495,7 @@ export default function App() {
             {/* HERO */}
             <div className="hw" style={{ display: "flex", alignItems: "center", padding: "56px 80px 48px", gap: "40px", position: "relative", overflow: "hidden", minHeight: "520px" }}>
               <div style={{ position: "absolute", inset: 0, zIndex: 0 }}>
-                <img src="https://i.pinimg.com/1200x/08/af/22/08af22c8819ac35e7c0319b5f33b97f7.jpg" alt="" style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center top", opacity: .18, filter: "saturate(.5)", ...paralaxStyle }} />
+                <img src="https://i.pinimg.com/736x/a4/a9/a6/a4a9a6a8e3bae75af733926c7cfec1b2.jpg" alt="" style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center top", opacity: .18, filter: "saturate(.5)", ...paralaxStyle }} />
                 <div style={{ position: "absolute", inset: 0, background: "linear-gradient(105deg,rgba(5,5,14,.98) 0%,rgba(5,5,14,.8) 55%,rgba(5,5,14,.1) 100%)" }} />
                 <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom,transparent 40%,rgba(5,5,14,1) 100%)" }} />
               </div>
@@ -579,80 +834,7 @@ export default function App() {
         )}
 
         {/* ════════ CONTACT ════════ */}
-        {active === "contact" && (
-          <div className="pi">
-            <div className="barea" style={{ position: "relative", overflow: "hidden", minHeight: "220px", padding: "50px 80px 44px", display: "flex", flexDirection: "column", justifyContent: "flex-end" }}>
-              <div style={{ position: "absolute", inset: 0, background: `url("data:image/svg+xml,${encodeURIComponent(dotSvg)}") repeat`, backgroundSize: "24px 24px", ...paralaxStyleSlow }} />
-              <div style={{ position: "absolute", inset: 0, background: "linear-gradient(135deg,rgba(16,185,129,.1) 0%,rgba(0,212,255,.05) 40%,rgba(5,5,14,.95) 70%,rgba(5,5,14,1) 100%)" }} />
-              <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom,rgba(5,5,14,.2) 0%,rgba(5,5,14,1) 100%)" }} />
-              <div className="bbt" style={{ position: "absolute", right: "-10px", top: "50%", transform: "translateY(-50%)", fontSize: "150px", fontWeight: 900, color: "#10B981", opacity: .05, pointerEvents: "none", lineHeight: 1, userSelect: "none" }}>CONTACT</div>
-              <div style={{ position: "relative", zIndex: 1 }}>
-                <div style={{ display: "inline-flex", alignItems: "center", gap: "8px", padding: "4px 14px", border: "1px solid rgba(16,185,129,.3)", marginBottom: "10px", background: "rgba(16,185,129,.06)" }}>
-                  <div style={{ width: "6px", height: "6px", borderRadius: "50%", background: "#10B981", animation: "pulse 2s ease-in-out infinite" }} />
-                  <span style={{ fontSize: "9px", letterSpacing: ".35em", color: "#10B981", textTransform: "uppercase" }}>contact.init — disponible</span>
-                </div>
-                <h2 className="st fu" style={{ fontSize: "62px", fontWeight: 900, lineHeight: .9, color: "#E2E8F0", marginBottom: "10px" }}>Contact</h2>
-                <p style={{ fontSize: "14px", color: "#5A6478", maxWidth: "480px" }}>Un projet en tête ? Une idée à concrétiser ? Parlons-en — je réponds rapidement.</p>
-                <div style={{ width: "60px", height: "2px", background: "linear-gradient(90deg,#10B981,transparent)", marginTop: "14px" }} />
-              </div>
-            </div>
-
-            <div className="sp" style={{ padding: "44px 80px" }}>
-              <div className="contg" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "48px", alignItems: "start" }}>
-                <div>
-                  <p style={{ fontSize: "14px", color: "#5A6478", lineHeight: 1.85, marginBottom: "10px" }}>Je suis développeur indépendant, toujours à la recherche de nouveaux défis. Que vous ayez besoin d'un bot Discord robuste, d'un système RP complet ou d'un site web qui se démarque — je suis là.</p>
-                  <p style={{ fontSize: "13px", color: "#3A4560", lineHeight: 1.75, marginBottom: "36px" }}>Ma philosophie : chaque projet mérite un soin particulier. Pas de solution générique — du travail sur mesure, adapté à votre communauté et vos besoins.</p>
-                  <div style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
-                    {[
-                      { label: "GitHub", value: "github.com/Mrexdev", link: "https://github.com/Mrexdev", color: "#E2E8F0", icon: "◈", sub: "Code source & open source" },
-                      { label: "Site Sentinel", value: "sentinelbotfr — Google Sites", link: "https://sites.google.com/view/sentinelbotfr/sentinel", color: "#FF6B35", icon: "🛡️", sub: "Mon bot de sécurité Discord" },
-                      { label: "Discord", value: "Disponible sur demande", color: "#8B5CF6", icon: "💬", sub: "Réponse garantie sous 24h" },
-                    ].map((c, i) => (
-                      <TiltCard key={c.label} className={`ci${i + 1}`} style={{ padding: "18px 20px", background: "rgba(10,10,22,.92)", border: "1px solid rgba(255,255,255,.07)", borderLeft: `3px solid ${c.color}`, display: "flex", alignItems: "center", gap: "14px" }}>
-                        <div style={{ width: "44px", height: "44px", background: `${c.color}10`, border: `1px solid ${c.color}28`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "18px", flexShrink: 0 }}>{c.icon}</div>
-                        <div style={{ flex: 1 }}>
-                          <div style={{ fontSize: "9px", letterSpacing: ".18em", color: "#3A4560", textTransform: "uppercase", marginBottom: "2px" }}>{c.label}</div>
-                          {c.link ? <a href={c.link} target="_blank" rel="noreferrer" style={{ fontSize: "13px", color: c.color, textDecoration: "none", display: "block" }}>{c.value}</a> : <span style={{ fontSize: "13px", color: "#8892A4" }}>{c.value}</span>}
-                          <div style={{ fontSize: "10px", color: "#3A4560", marginTop: "2px" }}>{c.sub}</div>
-                        </div>
-                        {c.link && <span style={{ color: "#3A4560", fontSize: "14px" }}>→</span>}
-                      </TiltCard>
-                    ))}
-                  </div>
-                </div>
-                <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
-                  <TiltCard className="ci1" style={{ padding: "30px", background: "rgba(10,10,22,.92)", border: "1px solid rgba(255,255,255,.07)", borderTop: "2px solid #10B981", overflow: "hidden" }}>
-                    <div style={{ position: "absolute", top: "-30px", right: "-30px", width: "130px", height: "130px", borderRadius: "50%", background: "radial-gradient(circle,rgba(16,185,129,.1),transparent 70%)", pointerEvents: "none" }} />
-                    <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "14px" }}>
-                      <div style={{ width: "8px", height: "8px", borderRadius: "50%", background: "#10B981", boxShadow: "0 0 8px #10B981", animation: "pulse 2s ease-in-out infinite" }} />
-                      <span style={{ fontSize: "10px", color: "#10B981", letterSpacing: ".14em", textTransform: "uppercase", fontWeight: 600 }}>Disponible pour des projets</span>
-                    </div>
-                    <h3 style={{ fontSize: "20px", fontWeight: 700, color: "#E2E8F0", marginBottom: "12px" }}>Travaillons ensemble</h3>
-                    <p style={{ fontSize: "13px", color: "#5A6478", lineHeight: 1.8 }}>Bot Discord sur mesure avec toutes les fonctionnalités dont vous rêvez. Système RP qui donne vie à votre serveur GTA. Site web qui reflète vraiment qui vous êtes. Chaque collaboration est unique.</p>
-                  </TiltCard>
-
-                  <TiltCard className="ci2" style={{ padding: "26px", background: "rgba(10,10,22,.92)", border: "1px solid rgba(255,255,255,.07)", overflow: "hidden" }}>
-                    <div style={{ fontSize: "9px", letterSpacing: ".2em", color: "#3A4560", textTransform: "uppercase", marginBottom: "16px" }}>Stack utilisée</div>
-                    <div style={{ display: "flex", flexWrap: "wrap", gap: "7px", marginBottom: "14px" }}>
-                      {["Discord.js", "Node.js", "React", "MySQL", "Lua", "HTML/CSS", "FiveM"].map(t => (
-                        <span key={t} style={{ fontSize: "11px", padding: "4px 10px", background: "rgba(0,212,255,.06)", color: "#00D4FF", border: "1px solid rgba(0,212,255,.15)", cursor: "default", transition: "all .2s" }}
-                          onMouseOver={e => { e.currentTarget.style.background = "rgba(0,212,255,.15)"; e.currentTarget.style.transform = "translateY(-2px)"; }}
-                          onMouseOut={e => { e.currentTarget.style.background = "rgba(0,212,255,.06)"; e.currentTarget.style.transform = "none"; }}>{t}</span>
-                      ))}
-                    </div>
-                    <p style={{ fontSize: "11px", color: "#3A4560", lineHeight: 1.7 }}>Technologies sélectionnées pour leur fiabilité et leur performance dans les environnements de production.</p>
-                  </TiltCard>
-
-                  <TiltCard className="ci3" style={{ padding: "24px", background: "rgba(255,107,53,.04)", border: "1px solid rgba(255,107,53,.14)", borderLeft: "3px solid #FF6B35", overflow: "hidden" }}>
-                    <div style={{ position: "absolute", right: "16px", top: "16px", fontSize: "28px", opacity: .3 }}>💬</div>
-                    <p style={{ fontSize: "13px", fontStyle: "italic", color: "#8892A4", lineHeight: 1.75, marginBottom: "8px" }}>"Créer des bots stylés, fluides et intelligents — ce n'est pas juste un travail, c'est une façon de voir le code comme un art."</p>
-                    <span style={{ fontSize: "10px", color: "#FF6B35", letterSpacing: ".07em" }}>— ๖̶ζ͜͡Mrex</span>
-                  </TiltCard>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
+        {active === "contact" && <ContactSection paralaxStyleSlow={paralaxStyleSlow} paralaxStyle={paralaxStyle} dotSvg={dotSvg} />}
       </main>
     </div>
   );
