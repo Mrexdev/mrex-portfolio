@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, useEffect } from "react";
 
 /* ─────────────── DATA ─────────────── */
 const SKILLS = [
@@ -378,6 +378,43 @@ export default function App() {
     return () => window.removeEventListener("mousemove", move);
   }, []);
 
+useEffect(() => {
+  const texts = [
+    "⚡ Mrex — Portfolio",
+    "🚀 Développeur Discord",
+    "💻 Fullstack Dev",
+    "🎮 FiveM Architect"
+  ];
+
+  let index = 0;
+  let charIndex = 0;
+  let isDeleting = false;
+
+  const typeEffect = () => {
+    const current = texts[index];
+    document.title = current.substring(0, charIndex) + "|";
+
+    if (!isDeleting) {
+      charIndex++;
+      if (charIndex === current.length) {
+        isDeleting = true;
+        setTimeout(typeEffect, 1500);
+        return;
+      }
+    } else {
+      charIndex--;
+      if (charIndex === 0) {
+        isDeleting = false;
+        index = (index + 1) % texts.length;
+      }
+    }
+
+    setTimeout(typeEffect, isDeleting ? 50 : 100);
+  };
+
+  typeEffect();
+}, []);
+  
   const go = s => setActive(s);
 
   const circuitSvg = `<svg xmlns='http://www.w3.org/2000/svg' width='80' height='80'><circle cx='40' cy='40' r='1.5' fill='%2300D4FF' opacity='.4'/><path d='M40 40 L60 40 L60 20' stroke='%2300D4FF' stroke-width='.4' fill='none' opacity='.18'/><path d='M40 40 L20 40 L20 60' stroke='%2300D4FF' stroke-width='.4' fill='none' opacity='.18'/><circle cx='60' cy='20' r='2' fill='none' stroke='%2300D4FF' stroke-width='.4' opacity='.25'/><circle cx='20' cy='60' r='2' fill='none' stroke='%2300D4FF' stroke-width='.4' opacity='.25'/></svg>`;
