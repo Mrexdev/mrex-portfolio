@@ -185,7 +185,7 @@ function ContactSection({ paralaxStyleSlow, paralaxStyle, dotSvg }) {
             <div style={{ display: "flex", flexDirection: "column", gap: "12px", marginBottom: "32px" }}>
               {[
                 { label: "GitHub", value: "github.com/Mrexdev", link: "https://github.com/Mrexdev", color: "#E2E8F0", icon: "◈", sub: "Code source & projets" },
-                { label: "Site Sentinel", value: "sentinelbotfr", link: "https://sites.google.com/view/sentinelbotfr/sentinel", color: "#FF6B35", icon: "🛡️", sub: "Mon bot de sécurité Discord" },
+                { label: "Site Sentinel", value: "sentinelbotfr", link: "https://sentinel-sitev2.vercel.app/", color: "#FF6B35", icon: "🛡️", sub: "Mon bot de sécurité Discord" },
                 { label: "Discord", value: "Sur demande via le formulaire", color: "#5865F2", icon: "💬", sub: "Réponse garantie sous 24h" },
               ].map((c, i) => (
                 <TiltCard key={c.label} className={`ci${i + 1}`} style={{ padding: "16px 18px", background: "rgba(10,10,22,.92)", border: "1px solid rgba(255,255,255,.07)", borderLeft: `3px solid ${c.color}`, display: "flex", alignItems: "center", gap: "14px" }}>
